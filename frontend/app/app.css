@@ -1,6 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "uploadthing/tw/v4";
 @source "../node_modules/@uploadthing/react/dist";
+
+/* app.css */
+
+
+/* Base font */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Logo */
+.font-logo {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+}
+
+/* Titles */
+.font-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+/* Price / technical labels */
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,

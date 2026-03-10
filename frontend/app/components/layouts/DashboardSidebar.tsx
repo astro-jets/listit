@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiShoppingBag, FiPlus, FiMessageCircle } from "react-icons/fi";
+import { FiShoppingBag, FiPlus, FiMessageCircle, FiPackage } from "react-icons/fi";
 import { useLocation, Link } from "react-router";
 
 interface SidebarProps {
@@ -48,9 +48,16 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ isSidebarOpen }) => {
                     currentPath={location.pathname}
                 />
                 <SidebarItem
+                    icon={FiPackage}
+                    label="Inventory"
+                    url="/inventory"
+                    isOpen={isSidebarOpen}
+                    currentPath={location.pathname}
+                />
+                <SidebarItem
                     icon={FiMessageCircle}
-                    label="Messages"
-                    url="/messages"
+                    label="Reviews"
+                    url="/reviews"
                     isOpen={isSidebarOpen}
                     currentPath={location.pathname}
                 />
