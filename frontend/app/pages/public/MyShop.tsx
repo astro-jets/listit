@@ -6,8 +6,9 @@ const MyShop = () => {
 
     return (
         <DashboardLayout>
-            {/* <ShopForm /> */}
-            <ShopDashboard />
+            <ShopForm />
+<h1>Dont mind this line</h1>
+            {/* <ShopDashboard /> */}
         </DashboardLayout>
     );
 };
