@@ -6,8 +6,10 @@ import corsPlugin from "./plugins/cors";
 import multipartPlugin from "./plugins/multipart";
 import postgresPlugin from "./plugins/postgress";
 import healthRoute from "./routes/health.route";
-import releasesRoute from "./routes/releases.route";
 import authRoutes from "./routes/auth.route";
+import { pool } from "./db/db";
+import { initDb } from "./db/initDb";
+import listingsRoutes from "./routes/listings.route";
 
 dotenv.config();
 
@@ -19,10 +21,13 @@ export async function buildApp() {
   await app.register(multipartPlugin);
   await app.register(postgresPlugin);
 
+  // Initialize database
+  await initDb(pool);
+
   // Routes
   await app.register(healthRoute);
   await app.register(authRoutes);
-  await app.register(releasesRoute, { prefix: "/artist" });
+  await app.register(listingsRoutes, { prefix: "/listings" });
 
   return app;
 }

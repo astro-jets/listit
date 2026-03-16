@@ -1,6 +1,6 @@
 // src/controllers/artist.controller.ts
 import { FastifyRequest, FastifyReply } from "fastify";
-import { searchArtistsByName } from "../models/artist.model";
+import { searchArtistsByName } from "../models/user.model";
 
 export async function searchArtists(req: FastifyRequest, reply: FastifyReply) {
   const { query } = req.query as { query: string };

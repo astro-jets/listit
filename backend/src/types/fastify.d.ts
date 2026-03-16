@@ -7,7 +7,13 @@ declare module "fastify" {
     // The Fastify instance has the Pool object decorated as 'pg'
     pg: Pool;
   }
-
+  interface FastifyRequest {
+    user: {
+      id: string;
+      role: string;
+      email: string;
+    };
+  }
   // OPTIONAL: You can also augment the Request object if you prefer accessing it via `req.pg`
   // interface FastifyRequest {
   //   pg: Pool;

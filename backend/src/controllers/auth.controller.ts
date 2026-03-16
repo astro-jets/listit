@@ -5,13 +5,13 @@ import jwt from "jsonwebtoken";
 import { User, UserRole } from "../types/user";
 import { del } from "@vercel/blob";
 import { request } from "http";
-import * as ReleaseModel from "../models/release.model";
+import * as ReleaseModel from "../models/listing.model";
 import {
   deleteReleaseRecord,
   deleteTrackRecord,
   getReleaseAssets,
   getTrackData,
-} from "../models/release.model";
+} from "../models/listing.model";
 
 interface TrackParams {
   trackId: string;
@@ -26,7 +26,7 @@ const signToken = (user: User) => {
   return jwt.sign(
     { id: user.id, role: user.role },
     process.env.JWT_SECRET || "fallback_secret_must_be_changed", // Use env var or fall back
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
 };
 
@@ -123,7 +123,7 @@ export class AuthController {
   static async deleteRelease(
     request: FastifyRequest<{ Params: ReleaseParams }>,
     reply: FastifyReply,
-    providedId?: string
+    providedId?: string,
   ) {
     const releaseId = providedId || request.params.id;
 
@@ -146,7 +146,7 @@ export class AuthController {
 
   static async deleteTrack(
     req: FastifyRequest<{ Params: TrackParams }>,
-    reply: FastifyReply
+    reply: FastifyReply,
   ) {
     const { trackId } = req.params;
 
@@ -159,7 +159,7 @@ export class AuthController {
 
       // 2. Use the COUNT method instead of fetching array
       const trackCount = await ReleaseModel.getTrackCountByRelease(
-        track.release_id
+        track.release_id,
       ); // <--- FIXED HERE
 
       // 3. LOGIC: If count is 1 or less, it means this is the last track.
