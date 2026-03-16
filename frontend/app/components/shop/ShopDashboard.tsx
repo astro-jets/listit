@@ -11,6 +11,7 @@ import {
     FiTruck
 } from 'react-icons/fi';
 import ListingsManager from '~/components/listings/ListingManager';
+import NewListingForm from '../forrms/listingForm';
 
 // --- Types ---
 type View = 'shop-overview' | 'manage-listings' | 'create-listing' | 'settings';
@@ -83,7 +84,7 @@ const ShopDashboard = () => {
                             <div className="absolute -bottom-10 left-8 w-24 h-24 bg-black border-4 border-white flex items-center justify-center text-yellow-400">
                                 <FiShoppingBag size={40} />
                             </div>
-                            <div className="ml-28 mb-[-10px]">
+                            <div className="ml-28 -mb-2.5">
                                 <h1 className="text-4xl font-black uppercase tracking-tighter bg-black text-white px-4 py-1 inline-block">
                                     {shopData.name}
                                 </h1>
@@ -152,92 +153,3 @@ const StatCard = ({ icon, label, value }: any) => (
     </div>
 );
 
-// --- New Listing Form with Image Upload & Category Selector ---
-const NewListingForm = ({ onBack }: { onBack: () => void }) => {
-    const [selectedImages, setSelectedImages] = useState<File[]>([]);
-    const [category, setCategory] = useState('');
-
-    const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const arr = Array.from(e.target.files);
-            if (selectedImages.length + arr.length > 5) return alert("Limit 5 images");
-            setSelectedImages([...selectedImages, ...arr]);
-        }
-    };
-
-    return (
-        <div className="max-w-3xl space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-4">
-                <button onClick={onBack} className="p-2 border-2 border-black hover:bg-yellow-400"><FiExternalLink className="rotate-180" /></button>
-                <h2 className="text-3xl font-black uppercase tracking-tighter">New Shop Listing</h2>
-            </div>
-
-            <div className="w-full grid grid-cols-1 gap-8 bg-white border-4 border-black p-8 ">
-
-                {/* Category Picker */}
-                <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest">1. Select Category</label>
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                        {[
-                            { id: 'real', lab: 'Homes', icon: <FiHome /> },
-                            { id: 'auto', lab: 'Cars', icon: <FiTruck /> },
-                            { id: 'jobs', lab: 'Jobs', icon: <FiBriefcase /> },
-                            { id: 'elec', lab: 'Tech', icon: <FiSmartphone /> },
-                            { id: 'misc', lab: 'Other', icon: <FiTag /> },
-                        ].map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setCategory(cat.id)}
-                                className={`flex flex-col items-center p-3 border-2 border-black transition-all ${category === cat.id ? 'bg-yellow-400 translate-y-1 shadow-none' : 'hover:bg-yellow-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}`}
-                            >
-                                {cat.icon}
-                                <span className="text-[9px] font-black uppercase mt-1">{cat.lab}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Image Upload */}
-                <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest">2. Product Images ({selectedImages.length}/5)</label>
-                    <div className="flex flex-wrap gap-3">
-                        {selectedImages.map((file, i) => (
-                            <div key={i} className="relative w-20 h-20 border-2 border-black group">
-                                <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="prev" />
-                                <button
-                                    onClick={() => setSelectedImages(selectedImages.filter((_, idx) => idx !== i))}
-                                    className="absolute -top-2 -right-2 bg-red-500 text-white border border-black p-1 hover:bg-black"
-                                >
-                                    <FiTrash2 size={12} />
-                                </button>
-                            </div>
-                        ))}
-                        {selectedImages.length < 5 && (
-                            <label className="w-20 h-20 border-2 border-dashed border-black flex flex-col items-center justify-center cursor-pointer hover:bg-yellow-50">
-                                <FiImage className="text-gray-400" />
-                                <input type="file" multiple className="hidden" onChange={handleFile} />
-                            </label>
-                        )}
-                    </div>
-                </div>
-
-                {/* Inputs */}
-                <div className="space-y-4">
-                    <input type="text" placeholder="LISTING TITLE" className="w-full border-2 border-black p-4 font-black focus:outline-none focus:bg-yellow-50" />
-                    <div className="flex gap-4">
-                        <input type="text" placeholder="PRICE ($)" className="w-1/2 border-2 border-black p-4 font-mono font-bold focus:outline-none focus:bg-yellow-50" />
-                        <div className="w-1/2 border-2 border-black p-4 font-bold bg-gray-50 flex items-center justify-between">
-                            <span className="text-xs uppercase opacity-50">Shop ID:</span>
-                            <span className="text-xs">#VINT-042</span>
-                        </div>
-                    </div>
-                    <textarea placeholder="DESCRIPTION" rows={4} className="w-full border-2 border-black p-4 font-medium focus:outline-none focus:bg-yellow-50"></textarea>
-                </div>
-
-                <button className="w-full bg-black text-white py-5 text-xl font-black uppercase tracking-widest hover:bg-yellow-400 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] active:shadow-none active:translate-x-1">
-                    PUBLISH TO SHOP
-                </button>
-            </div>
-        </div>
-    );
-};

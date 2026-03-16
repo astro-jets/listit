@@ -1,8 +1,8 @@
-import DashboardLayout from "~/components/layouts/DashboardLayout";
+import AdminLayout from "~/components/layouts/AdminLayout";
 
 const AdminListings = () => {
     return (
-        <DashboardLayout>
+        <AdminLayout>
             <div className="p-6 space-y-6">
                 <div className="bg-black text-white p-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(250,204,21,1)]">
                     <h1 className="text-4xl font-black uppercase tracking-tighter">Global Moderation</h1>
@@ -29,7 +29,7 @@ const AdminListings = () => {
                     ))}
                 </div>
             </div>
-        </DashboardLayout>
+        </AdminLayout>
     );
 };
 

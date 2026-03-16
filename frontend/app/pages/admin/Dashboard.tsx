@@ -4,7 +4,7 @@ import {
     FiUserPlus, FiStopCircle, FiExternalLink, FiSearch,
     FiFilter, FiMoreHorizontal, FiShoppingBag
 } from 'react-icons/fi';
-import DashboardLayout from '~/components/layouts/DashboardLayout';
+import AdminLayout from '~/components/layouts/AdminLayout';
 
 type AdminTab = 'users' | 'verifications' | 'listings';
 
@@ -18,7 +18,7 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <DashboardLayout>
+        <AdminLayout>
             <div className="min-h-screen bg-white p-4 md:p-8 space-y-8 text-black">
 
                 {/* --- TOP ADMIN NAV --- */}
@@ -141,7 +141,7 @@ const AdminDashboard = () => {
 
                 </div>
             </div>
-        </DashboardLayout>
+        </AdminLayout>
     );
 };
 

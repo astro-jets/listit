@@ -5,7 +5,7 @@ export default [
   route("/admin/analytics", "pages/admin/Analytics.tsx"),
   route("/admin/listings", "pages/admin/Listings.tsx"),
   route("/admin/shops", "pages/admin/Shops.tsx"),
-  route("/admin/", "pages/admin/Dashboard.tsx"),
+  route("/admin/dashboard", "pages/admin/Dashboard.tsx"),
   route("/profile", "pages/public/Profile.tsx"),
   route("/reviews", "pages/public/Reviews.tsx"),
   route("/myshop", "pages/public/MyShop.tsx"),

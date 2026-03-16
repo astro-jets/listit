@@ -44,7 +44,7 @@ export async function initDb(pool: Pool) {
     name TEXT NOT NULL,
     description TEXT,
     logo_url TEXT,
-    location TEXT,
+    location JSONB,  -- Changed from TEXT to JSONB
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -52,7 +52,6 @@ export async function initDb(pool: Pool) {
     REFERENCES users(id)
     ON DELETE CASCADE
     );
-
     -- =========================
     -- CATEGORIES
     -- =========================
@@ -70,7 +69,7 @@ export async function initDb(pool: Pool) {
     title TEXT NOT NULL,
     description TEXT,
     price NUMERIC NOT NULL,
-    location TEXT,
+    location JSONB,  -- Changed from TEXT to JSONB
     status TEXT DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

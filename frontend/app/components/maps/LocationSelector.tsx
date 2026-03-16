@@ -40,9 +40,7 @@ interface LocationSelectorProps {
 }
 
 const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
-    const [shopName, setShopName] = useState('');
-    const [shopBio, setShopBio] = useState('');
-    const [logo, setLogo] = useState<File | null>(null);
+
     const [position, setPosition] = useState<[number, number]>([51.505, -0.09]);
 
     // --- Get User Location on Mount ---
@@ -59,6 +57,16 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
         }
     }, []);
 
+    useEffect(() => {
+        onComplete({
+            shopName: '', // Placeholder, parent should handle this
+            shopBio: '',  // Placeholder
+            lat: position[0],
+            lng: position[1],
+            logo: null
+        });
+    }, [position, onComplete]);
+
     const LocationMarker = () => {
         useMapEvents({
             click(e) {
@@ -68,69 +76,10 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
         return <Marker position={position} />;
     };
 
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setLogo(e.target.files[0]);
-        }
-    };
 
-    const handleSubmit = () => {
-        if (!shopName.trim()) return alert("Please enter a shop name");
-        onComplete({
-            shopName,
-            shopBio,
-            lat: position[0],
-            lng: position[1],
-            logo
-        });
-    };
 
     return (
         <div className="w-full space-y-10">
-            {/* Left Column: Details */}
-            <div className="space-y-6">
-                <h2 className="text-xl font-black uppercase flex items-center gap-2">
-                    <FiInfo className="text-yellow-500" /> Shop Details
-                </h2>
-                <div className="space-y-4">
-                    {/* ... Inputs remain the same ... */}
-                    <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest mb-1 block text-gray-400">Shop Name</label>
-                        <input
-                            type="text"
-                            value={shopName}
-                            onChange={(e) => setShopName(e.target.value)}
-                            placeholder="Enter Brand Name"
-                            className="w-full border-2 border-black p-3 font-bold focus:bg-yellow-50 outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-none transition-all"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest mb-1 block text-gray-400">Bio / Tagline</label>
-                        <textarea
-                            rows={3}
-                            value={shopBio}
-                            onChange={(e) => setShopBio(e.target.value)}
-                            placeholder="Tell the world what you sell..."
-                            className="w-full border-2 border-black p-3 font-medium focus:bg-yellow-50 outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-none transition-all"
-                        />
-                    </div>
-                    {/* Logo Upload */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest block text-gray-400">Visual Identity</label>
-                        <label className="p-4 border-2 border-dashed border-black bg-gray-50 flex items-center justify-center gap-4 cursor-pointer hover:bg-yellow-50 transition-colors group">
-                            <input type="file" className="hidden" onChange={handleLogoChange} accept="image/*" />
-                            <div className="p-3 bg-black text-yellow-400 group-hover:scale-110 transition-transform">
-                                {logo ? <FiImage size={24} /> : <FiShoppingBag size={24} />}
-                            </div>
-                            <div className="text-left">
-                                <p className="text-xs font-black uppercase">{logo ? logo.name : "Upload Shop Logo"}</p>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase">PNG, JPG up to 5MB</p>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
             {/* Right Column: Map */}
             <div className="space-y-6">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2">
@@ -164,16 +113,6 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
                         <span className="font-mono font-bold">{position[1].toFixed(6)}</span>
                     </div>
                 </div>
-            </div>
-
-            {/* Action */}
-            <div className="pt-6 border-t-4 border-black">
-                <button
-                    onClick={handleSubmit}
-                    className="group w-full bg-black text-white py-6 text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-yellow-400 hover:text-black transition-all border-2 border-black shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] active:shadow-none active:translate-x-1 active:translate-y-1"
-                >
-                    Launch My Shop <FiArrowRight size={28} className="group-hover:translate-x-2 transition-transform" />
-                </button>
             </div>
         </div>
     );

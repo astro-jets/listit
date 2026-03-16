@@ -6,7 +6,9 @@ const MyShop = () => {
 
     return (
         <DashboardLayout>
-            <ShopForm />
+            <ShopForm onComplete={function (): void {
+                throw new Error('Function not implemented.');
+            }} />
             {/* <ShopDashboard /> */}
         </DashboardLayout>
     );

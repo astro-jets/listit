@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiCheckCircle, FiXCircle, FiEye, FiSearch, FiAlertCircle } from 'react-icons/fi';
-import DashboardLayout from '~/components/layouts/DashboardLayout';
+import AdminLayout from '~/components/layouts/AdminLayout';
 
 const AdminShops = () => {
     const [shops, setShops] = useState([
@@ -10,7 +10,7 @@ const AdminShops = () => {
     ]);
 
     return (
-        <DashboardLayout>
+        <AdminLayout>
             <div className="p-6 space-y-6">
                 <div className="flex justify-between items-end border-b-4 border-black pb-4">
                     <h1 className="text-5xl font-black uppercase italic tracking-tighter">Shop <span className="text-yellow-400">Registry</span></h1>
@@ -53,7 +53,7 @@ const AdminShops = () => {
                     ))}
                 </div>
             </div>
-        </DashboardLayout>
+        </AdminLayout>
     );
 };
 

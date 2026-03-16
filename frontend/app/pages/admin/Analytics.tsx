@@ -1,5 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import DashboardLayout from '~/components/layouts/DashboardLayout';
+import AdminLayout from '~/components/layouts/AdminLayout';
 
 const AdminAnalytics = () => {
     const data = [
@@ -9,7 +9,7 @@ const AdminAnalytics = () => {
     ];
 
     return (
-        <DashboardLayout>
+        <AdminLayout>
             <div className="p-6 space-y-8">
                 <h1 className="text-6xl font-black uppercase italic tracking-tighter">System <span className="text-yellow-400">Metrics</span></h1>
 
@@ -53,7 +53,7 @@ const AdminAnalytics = () => {
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
+        </AdminLayout>
     );
 };
 
