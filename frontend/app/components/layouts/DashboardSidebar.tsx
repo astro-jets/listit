@@ -36,7 +36,7 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ isSidebarOpen }) => {
                 <SidebarItem
                     icon={DashboardIcon}
                     label="Dashboard"
-                    url="/"
+                    url="/dashboard"
                     isOpen={isSidebarOpen}
                     currentPath={location.pathname}
                 />
