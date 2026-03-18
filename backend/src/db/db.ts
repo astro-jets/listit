@@ -3,19 +3,19 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Initialize the PostgreSQL Pool once
+// Render sets NODE_ENV to "production" by default
+const isProduction = process.env.NODE_ENV === "production";
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: isProduction
+    ? { rejectUnauthorized: false } // Required for Render's self-signed certs
+    : false,
 });
 
-/**
- * A wrapper function to execute queries using the initialized pool.
- * It uses a generic type <T> for the row structure.
- * * The return type must be Promise<QueryResult<T>>.
- */
 export async function sql<T extends QueryResultRow = any>(
   text: string,
-  params?: any[]
+  params?: any[],
 ): Promise<QueryResult<T>> {
   // <-- CORRECT RETURN TYPE HERE
   try {
