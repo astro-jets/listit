@@ -3,18 +3,8 @@ import { listingController } from "../controllers/listing.controller";
 import { authenticate } from "../hooks/auth.hooks";
 
 export default async function listingsRoutes(fastify: FastifyInstance) {
-  // fastify.get("/", listingController.getListings);
-
-  fastify.get("/search", listingController.searchListings);
-
-  fastify.get("/:id", listingController.getListing);
-
+  // fastify.addHook("preHandler", authenticate);
   // Create a listing
-  fastify.post(
-    "/",
-    {
-      preHandler: authenticate,
-    },
-    listingController.createListing,
-  );
+  fastify.post("/", listingController.createListing);
+  fastify.get("/", listingController.getListings);
 }

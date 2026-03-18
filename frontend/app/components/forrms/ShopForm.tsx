@@ -65,22 +65,29 @@ const CreateShopOnboarding = ({ onComplete }: { onComplete: () => void }) => {
     };
 
     const onFormSubmit = async (data: ShopFormData) => {
-        setIsSubmitting(true);
-        if (!logo) return alert("Please upload a logo");
-        try {
-            // Use FormData for multipart/form-data (required for file uploads)
-            const formData = new FormData();
-            formData.append('name', data.name);
-            formData.append('bio', shopBio);
-            formData.append('location', JSON.stringify(data.location));
-            if (logo) formData.append('logo', logo);
+        if (!logo) {
+            alert("Please upload a shop logo");
+            return;
+        }
 
-            await createShop(formData);
-            alert("Shop created successfully!");
-            onComplete();
-        } catch (error) {
-            console.error(error);
-            alert("Error creating shop. Please try again.");
+        setIsSubmitting(true);
+        try {
+            const formData = new FormData();
+            formData.append("name", data.name);
+            formData.append("bio", data.bio);
+
+            // Critically: Stringify the location object for multipart transport
+            formData.append("location", JSON.stringify(data.location));
+
+            // Append the logo file
+            formData.append("logo", logo);
+
+            await createShop(formData); // Call your shop service
+
+            onComplete(); // Callback to redirect or show success
+        } catch (err: any) {
+            console.error("Submission failed", err);
+            alert(err.response?.data?.error || "Failed to establish shop");
         } finally {
             setIsSubmitting(false);
         }

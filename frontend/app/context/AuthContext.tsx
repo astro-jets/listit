@@ -1,9 +1,14 @@
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 
+// Update User interface to match your Backend (auth.controller.ts logic)
 interface User {
   id: string;
   username: string;
   email: string;
+  avatar_url?: string;
+  role?: number;
+  bio?: string;
 }
 
 interface AuthContextType {
@@ -22,32 +27,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedToken = localStorage.getItem("token");
-      const savedUser = localStorage.getItem("user");
-
-      if (savedToken && savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-
-        console.log("Found user in storage:", parsedUser);
-
-        setToken(savedToken);
-        setUser(parsedUser);
-      }
-    } catch (err) {
-      console.error("Auth initialization failed:", err);
-    } finally {
-      setLoading(false);
+    const savedToken = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+    if (savedToken && savedUser) {
+      setToken(savedToken);
+      setUser(JSON.parse(savedUser));
     }
+    setLoading(false);
   }, []);
 
-
   const login = (newToken: string, userData: User) => {
-    // 1. Save to browser storage (Permanent)
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(userData));
-
-    // 2. Update React state (Current Session)
     setToken(newToken);
     setUser(userData);
   };
@@ -57,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem("user");
     setToken(null);
     setUser(null);
-    window.location.href = "/login";
+    // DO NOT use window.location.href here
   };
 
   return (
@@ -67,11 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-// This is the "useAuth" hook you'll use in your components
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };

@@ -4,7 +4,7 @@ GET http://localhost:3001/artists HTTP/1.1
 GET http://localhost:3001/artist/releases/artist HTTP/1.1
 Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1Yjc0ZTRhLWY3MzMtNDQ1ZS05NThkLWZlMDVmMzM2OWZkNiIsInJvbGUiOiJhcnRpc3QiLCJpYXQiOjE3NjY3Njc0NzAsImV4cCI6MTc2NzM3MjI3MH0.dUCtDvMlDI-QWm69_aEfZXtAQHXvMLF_5teZSLgDAx8`
 ### Get artist albums
-GET http://localhost:3001/artist/library/ep HTTP/1.1
+GET http://localhost:3001/listings HTTP/1.1
 
 
 

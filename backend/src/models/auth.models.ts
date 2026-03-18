@@ -4,18 +4,22 @@ import { User, UserRole } from "../types/user";
 /**
  * Creates a new user in the database.
  */
+/**
+ * Creates a new user in the database including the Vercel Blob avatar URL.
+ */
 export async function createUser(
   email: string,
   password: string,
   username: string,
-  role: UserRole
+  role: UserRole,
+  bio: string,
+  avatar_url: string, //
 ): Promise<User> {
   const { rows } = await sql<User>(
-    // Note: We use username for artist_name on creation, which the user can change later.
-    `INSERT INTO users (email, password, username, role, artist_name)
-     VALUES ($1, $2, $3, $4, $5) 
-     RETURNING id, email, username, role, artist_name`,
-    [email, password, username, role, username] // <-- PASSING USERNAME TWICE ($3, $5)
+    `INSERT INTO users (email, password, username, role_id, bio, avatar_url)
+     VALUES ($1, $2, $3, $4, $5, $6) 
+     RETURNING id, email, username, role_id as role, avatar_url, bio`,
+    [email, password, username, role, bio, avatar_url],
   );
   return rows[0];
 }
@@ -23,10 +27,12 @@ export async function createUser(
 /**
  * Finds a user by email, including their hashed password.
  */
+/**/
 export async function findUserByEmail(email: string): Promise<User | null> {
   const { rows } = await sql(
-    `SELECT id, username, email, password, role FROM users WHERE email = $1`,
-    [email]
+    // Change 'role' to 'role_id as role' to match your schema
+    `SELECT id, username, email, password, role_id as role, avatar_url, bio FROM users WHERE email = $1`,
+    [email],
   );
   return rows.length > 0 ? rows[0] : null;
 }

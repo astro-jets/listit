@@ -49,7 +49,7 @@ export const listingModel = {
 
   async getListings(limit: number, offset: number) {
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         listings.*,
         shops.name AS shop_name,
         json_agg(listing_images.image_url) AS images
@@ -68,7 +68,7 @@ export const listingModel = {
 
   async getListingById(id: string) {
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         listings.*,
         shops.name AS shop_name,
         json_agg(listing_images.image_url) AS images

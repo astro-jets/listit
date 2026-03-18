@@ -3,9 +3,9 @@ import { FastifyInstance } from "fastify";
 import { AuthController } from "../controllers/auth.controller";
 
 export default async function authRoutes(fastify: FastifyInstance) {
-  // Registration for Artists: Now expects email, password, and username.
+  // Registration for Users: expects email, password, bio and username.
   // The username will be used as the initial artist_name.
-  fastify.post("/register/artist", AuthController.registerArtist);
+  fastify.post("/register/user", AuthController.registerUser);
 
   // Registration for Admins
   fastify.post("/register/admin", AuthController.registerAdmin);

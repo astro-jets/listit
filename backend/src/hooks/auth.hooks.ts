@@ -14,6 +14,7 @@ export async function authenticate(req: FastifyRequest, reply: FastifyReply) {
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || "your-secret"
+      
     ) as { id: string };
 
     // ATTACH THE USER: This is what the controller is looking for
