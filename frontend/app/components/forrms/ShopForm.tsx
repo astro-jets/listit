@@ -64,6 +64,7 @@ const CreateShopOnboarding = ({ onComplete }: { onComplete: () => void }) => {
         }
     };
 
+
     const onFormSubmit = async (data: ShopFormData) => {
         if (!logo) {
             alert("Please upload a shop logo");
