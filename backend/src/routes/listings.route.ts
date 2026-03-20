@@ -2,9 +2,18 @@ import { FastifyInstance } from "fastify";
 import { listingController } from "../controllers/listing.controller";
 import { authenticate } from "../hooks/auth.hooks";
 
-export default async function listingsRoutes(fastify: FastifyInstance) {
-  // fastify.addHook("preHandler", authenticate);
-  // Create a listing
-  fastify.post("/", listingController.createListing);
-  fastify.get("/", listingController.getListings);
+export default async function listingsRoutes(app: FastifyInstance) {
+  app.post("/", listingController.createListing);
+  app.get("/shop/:shopId", listingController.getByShop);
+  app.patch("/:id", listingController.update);
+  app.delete("/:id", listingController.delete);
+  // Get listings for the logged-in user
+  app.get(
+    "/my-listings",
+    { preHandler: authenticate },
+    listingController.getMyListings,
+  );
+
+  // Get a single listing by ID (Public)
+  app.get("/:id", listingController.getOne);
 }

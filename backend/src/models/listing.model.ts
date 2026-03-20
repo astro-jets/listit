@@ -1,43 +1,39 @@
 import { pool } from "../db/db";
 
 export const listingModel = {
+  // CREATE: Handles the listing and its multiple images
   async createListing(data: any) {
     const client = await pool.connect();
-
     try {
       await client.query("BEGIN");
 
+      // Matching your schema: shop_id, title, description, price, location, status
       const listingResult = await client.query(
-        `
-      INSERT INTO listings
-      (title, description, price, category, location, seller_id)
-      VALUES ($1,$2,$3,$4,$5,$6)
-      RETURNING *
-      `,
+        `INSERT INTO listings (shop_id, title, description, price, location)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
         [
+          data.shop_id,
           data.title,
           data.description,
           data.price,
-          data.category,
-          data.location,
-          data.seller_id,
+          data.location || null,
         ],
       );
 
       const listing = listingResult.rows[0];
 
-      for (const url of data.images) {
-        await client.query(
-          `
-        INSERT INTO listing_images (listing_id, image_url)
-        VALUES ($1,$2)
-        `,
-          [listing.id, url],
-        );
+      // Handle images for the listing_images table
+      if (data.images && data.images.length > 0) {
+        for (const url of data.images) {
+          await client.query(
+            `INSERT INTO listing_images (listing_id, image_url) VALUES ($1, $2)`,
+            [listing.id, url],
+          );
+        }
       }
 
       await client.query("COMMIT");
-
       return listing;
     } catch (err) {
       await client.query("ROLLBACK");
@@ -47,98 +43,101 @@ export const listingModel = {
     }
   },
 
-  async getListings(limit: number, offset: number) {
+  async getShopListings(shopId: number) {
     const result = await pool.query(
-      `SELECT
-        listings.*,
-        shops.name AS shop_name,
-        json_agg(listing_images.image_url) AS images
-      FROM listings
-      JOIN shops ON listings.shop_id = shops.id
-      LEFT JOIN listing_images
-      ON listings.id = listing_images.listing_id
-      GROUP BY listings.id, shops.name
-      ORDER BY listings.created_at DESC
-      LIMIT $1 OFFSET $2`,
-      [limit, offset],
+      `SELECT l.*, 
+       COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
+       FROM listings l
+       LEFT JOIN listing_images li ON l.id = li.listing_id
+       WHERE l.shop_id = $1
+       GROUP BY l.id`,
+      [shopId],
     );
-
     return result.rows;
   },
 
+  async getListingsByUser(userId: string) {
+    const result = await pool.query(
+      `
+      SELECT 
+        l.*, 
+        s.name as shop_name, 
+        s.logo_url as shop_logo,
+        COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
+      FROM listings l
+      JOIN shops s ON l.shop_id = s.id
+      LEFT JOIN listing_images li ON l.id = li.listing_id
+      WHERE s.owner_id = $1
+      GROUP BY l.id, s.id
+      ORDER BY l.created_at DESC
+      `,
+      [userId],
+    );
+    return result.rows;
+  },
+
+  // 2. GET SINGLE LISTING BY ID
+  // Includes full shop details for the product page
   async getListingById(id: string) {
     const result = await pool.query(
-      `SELECT
-        listings.*,
-        shops.name AS shop_name,
-        json_agg(listing_images.image_url) AS images
-      FROM listings
-      JOIN shops ON listings.shop_id = shops.id
-      LEFT JOIN listing_images
-      ON listings.id = listing_images.listing_id
-      WHERE listings.id = $1
-      GROUP BY listings.id, shops.name`,
+      `
+      SELECT 
+        l.*, 
+        s.name as shop_name, 
+        s.logo_url as shop_logo,
+        s.description as shop_description,
+        COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
+      FROM listings l
+      JOIN shops s ON l.shop_id = s.id
+      LEFT JOIN listing_images li ON l.id = li.listing_id
+      WHERE l.id = $1
+      GROUP BY l.id, s.id
+      `,
       [id],
     );
-
     return result.rows[0];
   },
+  // Helper to get images before deletion
+  async getListingImages(listingId: number): Promise<string[]> {
+    const result = await pool.query(
+      "SELECT image_url FROM listing_images WHERE listing_id = $1",
+      [listingId],
+    );
+    return result.rows.map((row) => row.image_url);
+  },
 
-  async updateListing(id: string, data: any) {
-    const { title, description, price, location } = data;
+  // Update logic matching your exact columns
+  async updateListing(id: number, data: any) {
+    const { title, description, price, location, status } = data;
 
     const result = await pool.query(
-      `UPDATE listings
-       SET title=$1, description=$2, price=$3, location=$4
-       WHERE id=$5
+      `UPDATE listings 
+       SET title = COALESCE($1, title), 
+           description = COALESCE($2, description), 
+           price = COALESCE($3, price), 
+           location = COALESCE($4, location),
+           status = COALESCE($5, status),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $6 
        RETURNING *`,
-      [title, description, price, location, id],
+      [
+        title || null,
+        description || null,
+        price || null,
+        location ? JSON.stringify(location) : null,
+        status || null,
+        id,
+      ],
     );
-
     return result.rows[0];
   },
 
-  async deleteListing(id: string) {
-    await pool.query(`DELETE FROM listings WHERE id=$1`, [id]);
-
-    return { success: true };
-  },
-
-  async addListingImage(listing_id: string, image_url: string) {
+  // Delete logic
+  async deleteListing(id: number): Promise<boolean> {
     const result = await pool.query(
-      `INSERT INTO listing_images (listing_id, image_url)
-       VALUES ($1,$2)
-       RETURNING *`,
-      [listing_id, image_url],
+      "DELETE FROM listings WHERE id = $1 RETURNING id",
+      [id],
     );
-
-    return result.rows[0];
-  },
-
-  async deleteImage(image_id: string) {
-    await pool.query(`DELETE FROM listing_images WHERE id=$1`, [image_id]);
-
-    return { success: true };
-  },
-
-  async searchListings(search: string) {
-    const result = await pool.query(
-      `SELECT * FROM listings
-       WHERE title ILIKE $1`,
-      [`%${search}%`],
-    );
-
-    return result.rows;
-  },
-
-  async getListingsByShop(shop_id: string) {
-    const result = await pool.query(
-      `SELECT * FROM listings
-       WHERE shop_id=$1
-       ORDER BY created_at DESC`,
-      [shop_id],
-    );
-
-    return result.rows;
+    return (result.rowCount ?? 0) > 0;
   },
 };

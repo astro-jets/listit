@@ -1,171 +1,139 @@
-import React, { useState } from 'react';
-import { FiCheck, FiX, FiTrash2, FiEdit3 } from 'react-icons/fi';
+import React, { useEffect, useState } from 'react';
+import { FiCheck, FiX, FiTrash2, FiEdit3, FiPlus, FiLoader, FiPackage } from 'react-icons/fi';
 import NewListingForm from '../forrms/listingForm';
+import { getShopListings, updateListing, deleteListing } from '~/services/listing.service';
 
 interface Listing {
     id: number;
     title: string;
     price: string;
     category: string;
-    image: string;
-    status: 'Active' | 'Sold';
+    images: string[];
+    status: string;
 }
 
-const ListingsManager = () => {
-    const [showListingForm, setShowListingForm] = useState(false)
-    // State for managing the list of products
-    const [myListings, setMyListings] = useState<Listing[]>([
-        { id: 1, title: "Modern Studio", price: "$1,200", category: "Rentals", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=80", status: 'Active' },
-        { id: 2, title: "Mountain Bike", price: "$450", category: "Sports", image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80", status: 'Active' },
-        { id: 3, title: "Gaming Laptop", price: "$900", category: "Electronics", image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=400&q=80", status: 'Sold' },
-    ]);
+const ListingsManager = ({ shopId }: { shopId: number }) => {
+    const [showListingForm, setShowListingForm] = useState(false);
+    const [myListings, setMyListings] = useState<Listing[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // State to track which ID is currently being edited
+    // Fast Edit States
     const [editingId, setEditingId] = useState<number | null>(null);
-    // Temporary state for the fields being changed
-    const [editBuffer, setEditBuffer] = useState<Listing | null>(null);
+    const [editBuffer, setEditBuffer] = useState<Partial<Listing>>({});
 
-    const startEditing = (item: Listing) => {
-        setEditingId(item.id);
-        setEditBuffer({ ...item });
-    };
-
-    const cancelEdit = () => {
-        setEditingId(null);
-        setEditBuffer(null);
-    };
-
-    const saveEdit = () => {
-        if (editBuffer) {
-            setMyListings(prev => prev.map(item => item.id === editBuffer.id ? editBuffer : item));
-            setEditingId(null);
-            setEditBuffer(null);
+    const fetchListings = async () => {
+        setIsLoading(true);
+        try {
+            const data = await getShopListings(shopId);
+            setMyListings(data);
+        } catch (error) {
+            console.error("Fetch error:", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        if (editBuffer) {
-            setEditBuffer({ ...editBuffer, [name]: value });
+    useEffect(() => {
+        if (!showListingForm) fetchListings();
+    }, [showListingForm, shopId]);
+
+    // --- Action Handlers ---
+
+    const startEditing = (item: Listing) => {
+        setEditingId(item.id);
+        setEditBuffer({ title: item.title, price: item.price });
+    };
+
+    const handleSaveEdit = async (id: number) => {
+        try {
+            const updated = await updateListing(id, editBuffer);
+            // Update local state without a full refresh
+            setMyListings(myListings.map(l => l.id === id ? { ...l, ...updated } : l));
+            setEditingId(null);
+        } catch (error) {
+            alert("Failed to update listing");
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!window.confirm("Are you sure? This will permanently delete this listing.")) return;
+
+        try {
+            await deleteListing(id);
+            setMyListings(myListings.filter(l => l.id !== id));
+        } catch (error) {
+            alert("Failed to delete listing");
         }
     };
 
     return (
-        <div className="min-h-screen bg-white text-black p-4">
-            <div className="w-full p-4 mx-auto flex justify-between items-center mb-12">
-                <div>
-                    <h1 className="text-4xl font-black uppercase tracking-tighter">Inventory Manager</h1>
-                    <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-1">Direct Inventory Control</p>
-                </div>
-                <div className="bg-yellow-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black rounded-xl p-4 cursor-pointer text-black"
-                    onClick={() => { setShowListingForm(!showListingForm) }}>
-                    {showListingForm ? 'Close' : 'New Listing'}
-                </div>
+        <div className="min-h-screen bg-white text-black">
+            {showListingForm ? (
+                <NewListingForm shopId={shopId.toString()} onBack={() => setShowListingForm(false)} />
+            ) : (
+                <div className="space-y-8 animate-in fade-in duration-500">
+                    <header className="flex justify-between items-end">
+                        <div className='space-y-2 text-left'>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500">Inventory</p>
+                            <h1 className="text-5xl font-black uppercase italic tracking-tighter">Your <span className="bg-black text-white px-2">Listings</span></h1>
+                        </div>
+                        <button onClick={() => setShowListingForm(true)} className="bg-yellow-400 border-4 border-black px-6 py-3 font-black uppercase text-xs flex items-center gap-2 hover:bg-black hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1">
+                            <FiPlus strokeWidth={4} /> Add Product
+                        </button>
+                    </header>
 
-            </div>
-
-            {showListingForm ?
-                <NewListingForm onBack={() => { }} />
-                :
-                <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {myListings.map((item) => {
-                            const isEditing = editingId === item.id;
-
-                            return (
-                                <div
-                                    key={item.id}
-                                    className={`group bg-white  p-5 transition-all  shadow-black/90 shadow 
-                                ${isEditing ? 'ring-4 ring-yellow-400 -translate-y-2' : 'hover:-translate-y-1'}`}
-                                >
-                                    {/* Image Section */}
-                                    <div className="relative h-48 mb-4 overflow-hidden bg-gray-100">
-                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                        {isEditing ? (
-                                            <select
-                                                name="status"
-                                                value={editBuffer?.status}
-                                                onChange={handleInputChange}
-                                                className="absolute top-2 right-2 bg-black text-white px-2 py-1 font-black text-[10px] uppercase border-2 border-yellow-400 outline-none"
-                                            >
-                                                <option value="Active">Active</option>
-                                                <option value="Sold">Sold</option>
-                                            </select>
-                                        ) : (
-                                            <div className={`absolute top-2 right-2 px-3 py-1 text-[10px] font-black uppercase border-2 border-black ${item.status === 'Active' ? 'bg-yellow-400' : 'bg-gray-200'}`}>
-                                                {item.status}
-                                            </div>
-                                        )}
+                    {isLoading ? (
+                        <div className="flex flex-col items-center py-20"><FiLoader className="animate-spin text-4xl mb-4" /><p className="font-black uppercase text-sm tracking-widest">Loading...</p></div>
+                    ) : myListings.length === 0 ? (
+                        <div className="border-4 border-dashed border-gray-200 p-20 text-center bg-gray-50"><FiPackage className="mx-auto text-4xl text-gray-300 mb-4" /><p className="font-black uppercase text-gray-300 text-2xl italic">Empty Shelf</p></div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {myListings.map((item) => (
+                                <div key={item.id} className="group border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all overflow-hidden">
+                                    <div className="aspect-video bg-gray-100 border-b-4 border-black relative overflow-hidden">
+                                        <img src={item.images[0] || 'https://via.placeholder.com/400'} className="w-full h-full object-cover" />
+                                        <div className="absolute top-4 left-4 bg-black text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">{item.category}</div>
                                     </div>
 
-                                    {/* Editable Fields */}
-                                    <div className="space-y-3">
-                                        {isEditing ? (
-                                            <>
+                                    <div className="p-6 text-left space-y-4">
+                                        {editingId === item.id ? (
+                                            /* FAST EDIT MODE */
+                                            <div className="space-y-3">
                                                 <input
-                                                    type="text"
-                                                    name="title"
-                                                    value={editBuffer?.title}
-                                                    onChange={handleInputChange}
-                                                    className="w-full border-2 border-black p-2 font-black uppercase tracking-tight focus:bg-yellow-50 outline-none"
+                                                    className="w-full border-2 border-black p-2 font-black uppercase text-sm"
+                                                    value={editBuffer.title}
+                                                    onChange={e => setEditBuffer({ ...editBuffer, title: e.target.value })}
                                                 />
-                                                <input
-                                                    type="text"
-                                                    name="category"
-                                                    value={editBuffer?.category}
-                                                    onChange={handleInputChange}
-                                                    className="w-full border-2 border-black p-2 text-xs font-bold uppercase tracking-widest focus:bg-yellow-50 outline-none"
-                                                />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <h3 className="text-xl font-black uppercase tracking-tight truncate">{item.title}</h3>
-                                                <p className="text-gray-500 text-xs font-black uppercase tracking-widest">{item.category}</p>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {/* Price and Actions */}
-                                    <div className="flex justify-between items-center pt-4 mt-4 border-t-2 border-black">
-                                        {isEditing ? (
-                                            <div className="flex items-center gap-2 w-full">
-                                                <input
-                                                    type="text"
-                                                    name="price"
-                                                    value={editBuffer?.price}
-                                                    onChange={handleInputChange}
-                                                    className="w-full border-2 border-black p-2 font-mono font-black text-lg focus:bg-yellow-50 outline-none"
-                                                />
-                                                <button onClick={saveEdit} className="p-3 bg-black text-white border-2 border-black hover:bg-yellow-400 hover:text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                                    <FiCheck strokeWidth={4} />
-                                                </button>
-                                                <button onClick={cancelEdit} className="p-3 bg-white border-2 border-black hover:bg-red-500 hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                                    <FiX strokeWidth={4} />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <span className="text-2xl font-black italic tracking-tighter">{item.price}</span>
                                                 <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => startEditing(item)}
-                                                        className="p-2 bg-yellow-400 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none hover:translate-x-1 transition-all"
-                                                    >
-                                                        <FiEdit3 />
-                                                    </button>
-                                                    <button className="p-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-red-500 hover:text-white transition-all">
-                                                        <FiTrash2 />
-                                                    </button>
+                                                    <input
+                                                        className="w-full border-2 border-black p-2 font-mono font-bold"
+                                                        value={editBuffer.price}
+                                                        onChange={e => setEditBuffer({ ...editBuffer, price: e.target.value })}
+                                                    />
+                                                    <button onClick={() => handleSaveEdit(item.id)} className="bg-green-500 text-white p-2 border-2 border-black"><FiCheck /></button>
+                                                    <button onClick={() => setEditingId(null)} className="bg-gray-200 p-2 border-2 border-black"><FiX /></button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            /* VIEW MODE */
+                                            <>
+                                                <h3 className="text-xl font-black uppercase truncate italic">{item.title}</h3>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-2xl font-black italic tracking-tighter">${item.price}</span>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => startEditing(item)} className="p-2 bg-yellow-400 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none hover:translate-x-1 transition-all"><FiEdit3 /></button>
+                                                        <button onClick={() => handleDelete(item.id)} className="p-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-red-500 hover:text-white transition-all"><FiTrash2 /></button>
+                                                    </div>
                                                 </div>
                                             </>
                                         )}
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            }
+            )}
         </div>
     );
 };
