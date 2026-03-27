@@ -4,6 +4,11 @@ export async function initDb(pool: Pool) {
   try {
     await pool.query(`
     -- =========================
+    -- RESET: DROP ALL TABLES
+    -- =========================
+    DROP TABLE IF EXISTS audit_logs, reports, messages, reviews, listing_images, listings, shops, users, roles CASCADE;
+
+    -- =========================
     -- EXTENSIONS
     -- =========================
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -11,7 +16,7 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- USER ROLES
     -- =========================
-    CREATE TABLE IF NOT EXISTS roles (
+    CREATE TABLE roles (
       id SERIAL PRIMARY KEY,
       name TEXT UNIQUE NOT NULL
     );
@@ -23,7 +28,7 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- USERS
     -- =========================
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE users (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       username TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
@@ -38,121 +43,77 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- SHOPS
     -- =========================
-    CREATE TABLE IF NOT EXISTS shops (
+    CREATE TABLE shops (
       id SERIAL PRIMARY KEY,
-      owner_id UUID NOT NULL,
+      owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       description TEXT,
       logo_url TEXT,
-      location JSONB,
+      location JSONB, -- Coordinates for Leaflet
+      is_approved BOOLEAN DEFAULT false, -- Admin Moderation
+      status TEXT DEFAULT 'available',    -- available, suspended
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    -- =========================
-    -- CATEGORIES
-    -- =========================
-    CREATE TABLE IF NOT EXISTS categories (
-      id SERIAL PRIMARY KEY,
-      name TEXT UNIQUE NOT NULL
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     -- =========================
     -- LISTINGS
     -- =========================
-    CREATE TABLE IF NOT EXISTS listings (
+    CREATE TABLE listings (
       id SERIAL PRIMARY KEY,
-      shop_id INTEGER NOT NULL,
+      shop_id INTEGER REFERENCES shops(id) ON DELETE CASCADE,
+      seller_id UUID REFERENCES users(id) ON DELETE CASCADE,
       title TEXT NOT NULL,
       description TEXT,
-      price NUMERIC NOT NULL,
-      location JSONB,
-      status TEXT DEFAULT 'active',
+      price DECIMAL(10,2) NOT NULL,
+      category TEXT,
+      location TEXT, -- Simple string (e.g., "Aisle 4")
+      is_approved BOOLEAN DEFAULT false, -- Admin Moderation
+      status TEXT DEFAULT 'available',    -- available, sold
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     -- =========================
-    -- LISTING IMAGES
+    -- SUPPORTING TABLES
     -- =========================
-    CREATE TABLE IF NOT EXISTS listing_images (
+    CREATE TABLE listing_images (
       id SERIAL PRIMARY KEY,
-      listing_id INTEGER NOT NULL,
+      listing_id INTEGER REFERENCES listings(id) ON DELETE CASCADE,
       image_url TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- =========================
-    -- LISTING CATEGORIES
-    -- =========================
-    CREATE TABLE IF NOT EXISTS listing_categories (
-      listing_id INTEGER NOT NULL,
-      category_id INTEGER NOT NULL,
-      PRIMARY KEY (listing_id, category_id),
-      FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE,
-      FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
-    );
-
-    -- =========================
-    -- REVIEWS
-    -- =========================
-    CREATE TABLE IF NOT EXISTS reviews (
+    CREATE TABLE reviews (
       id SERIAL PRIMARY KEY,
-      listing_id INTEGER,
-      reviewer_id UUID,
+      listing_id INTEGER REFERENCES listings(id) ON DELETE CASCADE,
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
       rating INTEGER CHECK (rating >= 1 AND rating <= 5),
       comment TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE,
-      FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- =========================
-    -- FAVORITES
-    -- =========================
-    CREATE TABLE IF NOT EXISTS favorites (
-      user_id UUID,
-      listing_id INTEGER,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (user_id, listing_id),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE
-    );
-
-    -- =========================
-    -- MESSAGES
-    -- =========================
-    CREATE TABLE IF NOT EXISTS messages (
+    CREATE TABLE reports (
       id SERIAL PRIMARY KEY,
-      sender_id UUID NOT NULL,
-      receiver_id UUID NOT NULL,
-      listing_id INTEGER,
-      message TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE SET NULL
+      reporter_id UUID REFERENCES users(id) ON DELETE SET NULL,
+      target_type TEXT NOT NULL, -- 'listing', 'shop', 'review'
+      target_id INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      status TEXT DEFAULT 'open', -- open, resolved, dismissed
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE audit_logs (
+      id SERIAL PRIMARY KEY,
+      admin_id UUID REFERENCES users(id) ON DELETE SET NULL,
+      action TEXT NOT NULL,
+      target_info TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     -- =========================
-    -- INDEXES
+    -- TRIGGERS
     -- =========================
-    CREATE INDEX IF NOT EXISTS idx_users_role ON users(role_id);
-    CREATE INDEX IF NOT EXISTS idx_shops_owner ON shops(owner_id);
-    CREATE INDEX IF NOT EXISTS idx_listings_shop ON listings(shop_id);
-    CREATE INDEX IF NOT EXISTS idx_images_listing ON listing_images(listing_id);
-    CREATE INDEX IF NOT EXISTS idx_reviews_listing ON reviews(listing_id);
-    CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
-    CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
-
-    -- =========================
-    -- UPDATED_AT TRIGGER LOGIC
-    -- =========================
-    
-    -- Use OR REPLACE for functions
     CREATE OR REPLACE FUNCTION update_timestamp()
     RETURNS TRIGGER AS $$
     BEGIN
@@ -161,29 +122,12 @@ export async function initDb(pool: Pool) {
     END;
     $$ LANGUAGE plpgsql;
 
-    -- Triggers do not have "IF NOT EXISTS". 
-    -- Best practice: Drop if exists, then create.
-    
-    DROP TRIGGER IF EXISTS users_updated ON users;
-    CREATE TRIGGER users_updated
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION update_timestamp();
-
-    DROP TRIGGER IF EXISTS shops_updated ON shops;
-    CREATE TRIGGER shops_updated
-    BEFORE UPDATE ON shops
-    FOR EACH ROW
-    EXECUTE FUNCTION update_timestamp();
-
-    DROP TRIGGER IF EXISTS listings_updated ON listings;
-    CREATE TRIGGER listings_updated
-    BEFORE UPDATE ON listings
-    FOR EACH ROW
-    EXECUTE FUNCTION update_timestamp();
+    CREATE TRIGGER users_updated BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+    CREATE TRIGGER shops_updated BEFORE UPDATE ON shops FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+    CREATE TRIGGER listings_updated BEFORE UPDATE ON listings FOR EACH ROW EXECUTE FUNCTION update_timestamp();
     `);
 
-    console.log("✅ Database schema initialized/synchronized successfully");
+    console.log("✅ Database reset and schema initialized successfully");
   } catch (error) {
     console.error("❌ Database initialization failed:", error);
     throw error;

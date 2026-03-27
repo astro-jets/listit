@@ -79,14 +79,14 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
 
 
     return (
-        <div className="w-full space-y-10">
+        <div className="w-full  h-screen space-y-10">
             {/* Right Column: Map */}
             <div className="space-y-6">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2">
                     <FiMapPin className="text-yellow-500" /> Shop Location
                 </h2>
 
-                <div className="h-100 w-full relative z-0 overflow-hidden ">
+                <div className="h-[60rem] w-full relative z-0 overflow-hidden ">
                     <MapContainer
                         center={position}
                         zoom={14}
@@ -94,8 +94,10 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
                         style={{ height: '100%', width: '100%' }}
                     >
                         <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            url="http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                            maxZoom={20}
+                            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                            attribution="&copy; Google"
                         />
                         <MapController center={position} />
                         <LocationMarker />

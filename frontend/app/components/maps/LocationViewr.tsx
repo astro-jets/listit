@@ -19,7 +19,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 const LocationViewer = ({ coords, shop }: { coords: { lat: number; lng: number }; shop: any }) => {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1  gap-6">
             <div className="lg:col-span-2 border-4 border-black h-[400px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative z-0">
                 <div className="absolute top-4 left-12 z-[1000] bg-black text-white px-4 py-1 font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
                     <FiMapPin /> Physical Location
@@ -30,9 +30,12 @@ const LocationViewer = ({ coords, shop }: { coords: { lat: number; lng: number }
                     style={{ height: '100%', width: '100%' }}
                     scrollWheelZoom={false}
                 >
+
                     <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; OpenStreetMap contributors'
+                        url="http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                        maxZoom={20}
+                        subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                        attribution="&copy; Google"
                     />
                     <Marker position={[coords.lat, coords.lng]}>
                         <Popup font-black >
@@ -40,17 +43,6 @@ const LocationViewer = ({ coords, shop }: { coords: { lat: number; lng: number }
                         </Popup>
                     </Marker>
                 </MapContainer>
-            </div>
-            <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-center space-y-4">
-                <h3 className="text-xl font-black uppercase italic">Contact Details</h3>
-                <div className="space-y-2">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Coordinates</p>
-                    <code className="block bg-gray-100 p-2 text-xs border-2 border-black">
-                        LAT: {coords.lat.toFixed(4)} <br />
-                        LNG: {coords.lng.toFixed(4)}
-                    </code>
-                </div>
-                <p className="text-sm font-medium italic">"Find us at the heart of the marketplace. Tap the marker for directions."</p>
             </div>
         </div>
     );

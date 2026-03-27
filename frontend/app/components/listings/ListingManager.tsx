@@ -71,13 +71,13 @@ const ListingsManager = ({ shopId }: { shopId: number }) => {
             {showListingForm ? (
                 <NewListingForm shopId={shopId.toString()} onBack={() => setShowListingForm(false)} />
             ) : (
-                <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="space-y-8 p-4 animate-in fade-in duration-500">
                     <header className="flex justify-between items-end">
                         <div className='space-y-2 text-left'>
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500">Inventory</p>
                             <h1 className="text-5xl font-black uppercase italic tracking-tighter">Your <span className="bg-black text-white px-2">Listings</span></h1>
                         </div>
-                        <button onClick={() => setShowListingForm(true)} className="bg-yellow-400 border-4 border-black px-6 py-3 font-black uppercase text-xs flex items-center gap-2 hover:bg-black hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1">
+                        <button onClick={() => setShowListingForm(true)} className="bg-yellow-400 cursor-pointer border-4 border-black px-6 py-3 font-black uppercase text-xs flex items-center gap-2 hover:bg-black hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1">
                             <FiPlus strokeWidth={4} /> Add Product
                         </button>
                     </header>

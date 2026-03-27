@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiEdit3, FiMapPin, FiTrash2, FiSave, FiX, FiLoader, FiGlobe, FiShoppingBag } from "react-icons/fi";
+import { FiEdit3, FiTrash2, FiSave, FiX, FiLoader, FiGlobe, FiShoppingBag } from "react-icons/fi";
 
 import { updateShop } from "~/services/shop.service";
 
@@ -39,7 +39,7 @@ const ShopManager = ({ shop, onDelete, onUpdate }: params) => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-700">
+        <div className="w-full p-4 mx-auto space-y-6 animate-in fade-in duration-700">
             {/* --- HERO / PROFILE HEADER --- */}
             <div className="relative border-4 border-black bg-white shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
                 <div className="h-32 bg-yellow-400 border-b-4 border-black flex items-end p-6">
@@ -108,6 +108,17 @@ const ShopManager = ({ shop, onDelete, onUpdate }: params) => {
             <LocationViewer coords={coords} shop={shop} />
 
 
+            <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-center space-y-4">
+                <h3 className="text-xl font-black uppercase italic">Contact Details</h3>
+                <div className="space-y-2">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Coordinates</p>
+                    <code className="block bg-gray-100 p-2 text-xs border-2 border-black">
+                        LAT: {coords.lat.toFixed(4)} <br />
+                        LNG: {coords.lng.toFixed(4)}
+                    </code>
+                </div>
+                <p className="text-sm font-medium italic">"Find us at the heart of the marketplace. Tap the marker for directions."</p>
+            </div>
         </div>
     );
 };

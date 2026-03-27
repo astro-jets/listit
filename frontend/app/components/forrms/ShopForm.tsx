@@ -50,7 +50,7 @@ const CreateShopOnboarding = ({ onComplete }: { onComplete: () => void }) => {
     const MemoizedMap = useMemo(() => (
         <ClientOnly>
             <React.Suspense
-                fallback={<div className="flex items-center justify-center h-full font-black animate-pulse bg-gray-50">LOADING MAP...</div>}>
+                fallback={<div className="flex items-center justify-center w-full h-full font-black animate-pulse bg-gray-50">LOADING MAP...</div>}>
                 <LocationSelector
                     onComplete={(data) => setValue('location', data, { shouldValidate: true })}
                 />
@@ -95,8 +95,8 @@ const CreateShopOnboarding = ({ onComplete }: { onComplete: () => void }) => {
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center p-8">
-            <div className="max-w-2xl w-full border-4 border-black p-8 bg-white shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] text-center space-y-8">
+        <div className="min-h-[70vh] w-full flex items-center justify-center">
+            <div className=" w-full border-4 border-black p-8 bg-white shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] text-center space-y-8">
 
                 <div className="w-20 h-20 bg-yellow-400 border-4 border-black flex items-center justify-center mx-auto -mt-20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                     <FiShoppingBag size={40} />
@@ -150,7 +150,7 @@ const CreateShopOnboarding = ({ onComplete }: { onComplete: () => void }) => {
                         </label>
                     </div>
 
-                    <div className={`border-4 border-black overflow-hidden h-64 relative ${errors.location ? 'border-red-500' : ''}`}>
+                    <div className={`border-4 border-black overflow-hidden  relative ${errors.location ? 'border-red-500' : ''}`}>
                         {MemoizedMap}
                         {locationData && (
                             <div className="absolute top-2 right-2 bg-green-400 border-2 border-black px-2 py-1 text-[8px] font-black uppercase z-50">

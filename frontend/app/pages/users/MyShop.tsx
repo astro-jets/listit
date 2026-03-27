@@ -45,11 +45,13 @@ const MyShop = () => {
     return (
         <DashboardLayout>
             {
-                loading ? <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                    <FiLoader className="animate-spin text-4xl mb-4 text-yellow-400" />
-                    <p className="font-black uppercase tracking-widest text-sm">Syncing Shop...</p>
-                </div> :
-                    <div className="p-6 md:p-10 max-w-5xl mx-auto">
+                loading ?
+                    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                        <FiLoader className="animate-spin text-4xl mb-4 text-yellow-400" />
+                        <p className="font-black uppercase tracking-widest text-sm">Syncing Shop...</p>
+                    </div>
+                    :
+                    <div className="w-full ">
                         {!shop ? (
                             <CreateShopOnboarding onComplete={handleOnboardingComplete} />
                         ) : (
