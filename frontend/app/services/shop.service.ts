@@ -10,6 +10,12 @@ export const getMyShop = async () => {
   return res.data;
 };
 
+// Get shop by Id
+export const getShopById = async (id: string) => {
+  const res = await client.get(`/shops/${id}`, getAuthHeader());
+  return res.data;
+};
+
 export const deleteShop = async (id: number) => {
   const res = await client.delete(`/shops/delete/${id}`, getAuthHeader());
   return res.data;

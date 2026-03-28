@@ -62,6 +62,16 @@ export const shopController = {
     }
   },
 
+  async getShopById(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const shopId = request.params as { id: string };
+      const shop = await shopModel.getShopById(parseInt(shopId.id));
+      return reply.send(shop);
+    } catch (error) {
+      return reply.code(500).send({ error: "Could not fetch shop" });
+    }
+  },
+
   // 3. Delete Shop
   async deleteShop(request: FastifyRequest, reply: FastifyReply) {
     // If you don't see this log, the request isn't reaching the function code

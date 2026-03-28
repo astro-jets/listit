@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import { pool } from "../db/db";
 
 export const listingModel = {
@@ -43,7 +44,7 @@ export const listingModel = {
     }
   },
 
-  async getShopListings(shopId: number) {
+  async getShopListings(shopId: string) {
     const result = await pool.query(
       `SELECT l.*, 
        COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
@@ -139,5 +140,69 @@ export const listingModel = {
       [id],
     );
     return (result.rowCount ?? 0) > 0;
+  },
+
+  async getFeaturedListings(limit: number, offset: number) {
+    // 1. Fetch the listings with shop details and the first image
+    const listings = await pool.query(
+      `SELECT 
+      l.id,
+      l.title,
+      l.price,
+      l.location,
+      l.category,
+      l.created_at,
+      s.name as shop_name,
+      (
+        SELECT image_url 
+        FROM listing_images 
+        WHERE listing_id = l.id 
+        LIMIT 1
+      ) as image
+    FROM listings l
+    INNER JOIN shops s ON l.shop_id = s.id
+    WHERE l.is_approved = true
+      AND l.status = 'available'
+    ORDER BY l.created_at DESC
+    LIMIT $1 OFFSET $2;
+    `,
+      [limit, offset],
+    );
+
+    // 2. Count total matches using the exact same filters
+    const countResult = await pool.query(
+      `SELECT COUNT(*) 
+     FROM listings l
+     INNER JOIN shops s ON l.shop_id = s.id
+     WHERE l.is_approved = true
+       AND l.status = 'available';
+    `,
+    );
+
+    return {
+      data: listings.rows,
+      total: parseInt(countResult.rows[0].count, 10),
+    };
+  },
+
+  async searchListings(searchTerm: string) {
+    const query = `
+      SELECT 
+        l.*, 
+        s.name as shop_name,
+        (SELECT image_url FROM listing_images WHERE listing_id = l.id LIMIT 1) as main_image
+      FROM listings l
+      JOIN shops s ON l.shop_id = s.id
+      WHERE 
+        (l.title ILIKE $1 OR l.description ILIKE $1 OR l.category ILIKE $1)
+        AND l.is_approved = true
+        AND l.status = 'available'
+      ORDER BY l.created_at DESC
+    `;
+
+    // The % symbols allow for partial matching (e.g., "sword" finds "Iron Sword")
+    const values = [`%${searchTerm}%`];
+    const { rows } = await pool.query(query, values);
+    return rows;
   },
 };

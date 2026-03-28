@@ -8,13 +8,22 @@ const ListingCard = ({ item }: any) => {
 
             {/* IMAGE */}
             <div className="relative h-56 overflow-hidden">
-                <img
-                    src={item.image || "https://via.placeholder.com/400"}
-                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-                />
+                {
+                    item.images && item.images.length > 0 ? (
+                        <img
+                            src={item.images[0]} // Show the first image as the thumbnail
+                            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                        />
+                    ) : (
+                        <img
+                            src={item.image || "https://via.placeholder.com/400"}
+                            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                        />
+                    )
+                }
 
                 {/* overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent opacity-80" />
 
                 {/* CATEGORY BADGE */}
                 <div className="absolute top-3 left-3 bg-black/70 backdrop-blur px-3 py-1 text-xs rounded-full border border-white/10">

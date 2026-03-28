@@ -13,7 +13,7 @@ export default async function listingsRoutes(app: FastifyInstance) {
     { preHandler: authenticate },
     listingController.getMyListings,
   );
-
+  app.get("/featured", listingController.fetchFeaturedListings);
   // Get a single listing by ID (Public)
   app.get("/:id", listingController.getOne);
 }

@@ -29,6 +29,13 @@ export const shopModel = {
     return rows[0] || null;
   },
 
+  async getShopById(shopId: number) {
+    const { rows } = await sql(`SELECT * FROM shops WHERE id = $1 LIMIT 1`, [
+      shopId,
+    ]);
+    return rows[0] || null;
+  },
+
   async deleteShop(shopId: number, ownerId: string) {
     const query = `
       DELETE FROM shops 

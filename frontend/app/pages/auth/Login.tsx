@@ -41,7 +41,7 @@ const LoginPage = () => {
 
             authLogin(response.token, response.user);
 
-            navigate('/dashboard');
+            navigate('/');
         } catch (err: any) {
             setServerError(err.response?.data?.error || "Invalid credentials");
         } finally {
@@ -50,82 +50,115 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-4 text-black font-sans">
-            <div className="w-full max-w-md bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 space-y-8">
+        <div className="min-h-screen bg-black flex items-center justify-center px-4 text-white">
 
-                <div className="text-center">
-                    <h1 className="text-5xl font-black uppercase italic tracking-tighter leading-none">
-                        Welcome <span className="block text-yellow-400 drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">Back</span>
-                    </h1>
-                    <p className="mt-2 font-bold text-xs uppercase tracking-widest text-gray-500">Enter the command center</p>
-                </div>
+            {/* BACKGROUND GLOW */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.15),transparent_40%)]" />
 
-                {serverError && (
-                    <div className="bg-red-100 border-2 border-red-500 p-3 text-[10px] font-black uppercase text-red-600 animate-bounce">
-                        Error: {serverError}
+            <div className="relative w-full max-w-md">
+
+                {/* CARD */}
+                <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8 space-y-6 shadow-xl">
+
+                    {/* HEADER */}
+                    <div className="text-center space-y-2">
+                        <h1 className="text-3xl font-bold">
+                            Welcome Back
+                        </h1>
+                        <p className="text-sm text-zinc-400">
+                            Sign in to continue to <span className="text-yellow-400">List IT</span>
+                        </p>
                     </div>
-                )}
 
-                <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-                    {/* Email Field */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest flex justify-between">
-                            Email Address
-                            {errors.email && <span className="text-red-500 lowercase">{errors.email.message}</span>}
-                        </label>
-                        <div className="relative">
-                            <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-black z-10" />
-                            <input
-                                {...register('email')}
-                                type="email"
-                                placeholder="USER@EXAMPLE.COM"
-                                className={`w-full border-2 border-black p-3 pl-10 font-bold placeholder:text-gray-300 focus:bg-yellow-50 outline-none transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${errors.email ? 'border-red-500' : ''}`}
-                            />
+                    {/* ERROR */}
+                    {serverError && (
+                        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm p-3 rounded-lg">
+                            {serverError}
                         </div>
-                    </div>
+                    )}
 
-                    {/* Password Field */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest flex justify-between">
-                            Password
-                            {errors.password && <span className="text-red-500 lowercase">{errors.password.message}</span>}
-                        </label>
-                        <div className="relative">
-                            <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-black z-10" />
-                            <input
-                                {...register('password')}
-                                type="password"
-                                placeholder="••••••••"
-                                className={`w-full border-2 border-black p-3 pl-10 font-bold placeholder:text-gray-300 focus:bg-yellow-50 outline-none transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${errors.password ? 'border-red-500' : ''}`}
-                            />
+                    {/* FORM */}
+                    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+
+                        {/* EMAIL */}
+                        <div>
+                            <label className="text-xs text-zinc-400">Email</label>
+                            <div className="relative mt-1">
+                                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <input
+                                    {...register('email')}
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    className={`w-full bg-black/50 border border-white/10 rounded-lg p-3 pl-10 text-sm focus:outline-none focus:border-yellow-400 transition ${errors.email && 'border-red-500'
+                                        }`}
+                                />
+                            </div>
+                            {errors.email && (
+                                <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
+                            )}
                         </div>
-                    </div>
 
-                    <div className="flex justify-end">
-                        <button type="button" className="text-[10px] font-black uppercase border-b-2 border-black hover:bg-yellow-400 transition-colors">
-                            Forgot Password?
+                        {/* PASSWORD */}
+                        <div>
+                            <label className="text-xs text-zinc-400">Password</label>
+                            <div className="relative mt-1">
+                                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <input
+                                    {...register('password')}
+                                    type="password"
+                                    placeholder="••••••••"
+                                    className={`w-full bg-black/50 border border-white/10 rounded-lg p-3 pl-10 text-sm focus:outline-none focus:border-yellow-400 transition ${errors.password && 'border-red-500'
+                                        }`}
+                                />
+                            </div>
+                            {errors.password && (
+                                <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>
+                            )}
+                        </div>
+
+                        {/* OPTIONS */}
+                        <div className="flex justify-between items-center text-xs text-zinc-400">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" className="accent-yellow-400" />
+                                Remember me
+                            </label>
+
+                            <button type="button" className="hover:text-yellow-400 transition">
+                                Forgot password?
+                            </button>
+                        </div>
+
+                        {/* BUTTON */}
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full bg-yellow-400 text-black py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <FiLoader className="animate-spin" />
+                                    Signing in...
+                                </>
+                            ) : (
+                                <>
+                                    Login <FiArrowRight />
+                                </>
+                            )}
                         </button>
-                    </div>
+                    </form>
 
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full bg-black text-white py-4 font-black uppercase tracking-widest flex items-center justify-center gap-2 border-2 border-black shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] hover:bg-yellow-400 hover:text-black transition-all active:shadow-none active:translate-x-1 active:translate-y-1 disabled:opacity-50"
-                    >
-                        {isSubmitting ? (
-                            <><FiLoader className="animate-spin" /> Verifying...</>
-                        ) : (
-                            <>Authorize <FiArrowRight strokeWidth={3} /></>
-                        )}
-                    </button>
-                </form>
-
-                <p className="text-center text-xs font-bold uppercase">
-                    New here? <Link to="/signup" className="border-b-2 border-yellow-400 hover:bg-yellow-400 px-1">Create Account</Link>
-                </p>
+                    {/* FOOTER */}
+                    <p className="text-center text-sm text-zinc-400">
+                        Don’t have an account?{" "}
+                        <Link to="/signup" className="text-yellow-400 hover:underline">
+                            Sign up
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
+
 };
 
 export default LoginPage;

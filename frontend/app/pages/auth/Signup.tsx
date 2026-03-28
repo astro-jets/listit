@@ -88,142 +88,173 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center p-4 text-black">
-            <div className="w-full max-w-lg bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(250,204,21,1)] p-8 md:p-12 space-y-8">
+        <div className="min-h-screen bg-black flex items-center justify-center px-4 text-white">
 
-                <div>
-                    <h1 className="text-5xl font-black uppercase italic tracking-tighter leading-none text-black">
-                        Join the <span className="bg-yellow-400 px-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Elite</span>
-                    </h1>
-                    <p className="mt-4 font-bold text-sm uppercase tracking-widest text-gray-500 italic">Start your collection quest today.</p>
-                </div>
+            {/* BACKGROUND GLOW */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.12),transparent_40%)]" />
 
-                {serverError && (
-                    <div className="bg-red-100 border-2 border-red-500 p-3 text-[10px] font-black uppercase text-red-600 animate-pulse">
-                        {serverError}
+            <div className="relative w-full max-w-lg">
+
+                {/* CARD */}
+                <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8 space-y-6 shadow-xl">
+
+                    {/* HEADER */}
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-bold">
+                            Create Account
+                        </h1>
+                        <p className="text-sm text-zinc-400">
+                            Join <span className="text-yellow-400">Studio X</span> and start selling
+                        </p>
                     </div>
-                )}
 
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit(onFormSubmit)}>
-
-                    {/* Full Name */}
-                    <div className="space-y-1 md:col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest flex justify-between">
-                            Username / Business Name
-                            {errors.username && <span className="text-red-500 lowercase">{errors.username.message}</span>}
-                        </label>
-                        <div className="relative">
-                            <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-black" />
-                            <input
-                                {...register('username')}
-                                type="text"
-                                placeholder="ALEX RIVER"
-                                className={`w-full text-black border-2 border-black p-3 pl-10 font-bold focus:bg-yellow-50 outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${errors.username ? 'border-red-500 shadow-red-500' : ''}`}
-                            />
+                    {/* SERVER ERROR */}
+                    {serverError && (
+                        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm p-3 rounded-lg">
+                            {serverError}
                         </div>
-                    </div>
+                    )}
 
-                    {/* Email */}
-                    <div className="space-y-1 md:col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest flex justify-between">
-                            Email Address
-                            {errors.email && <span className="text-red-500 lowercase">{errors.email.message}</span>}
-                        </label>
-                        <div className="relative">
-                            <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-black" />
-                            <input
-                                {...register('email')}
-                                type="email"
-                                placeholder="HELLO@QUESTFIND.COM"
-                                className={`w-full border-2 border-black p-3 pl-10 font-bold focus:bg-yellow-50 outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${errors.email ? 'border-red-500 shadow-red-500' : ''}`}
-                            />
+                    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
+
+                        {/* USERNAME */}
+                        <div>
+                            <label className="text-xs text-zinc-400">Username / Business</label>
+                            <div className="relative mt-1">
+                                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <input
+                                    {...register('username')}
+                                    className={`w-full bg-black/50 border border-white/10 rounded-lg p-3 pl-10 text-sm focus:outline-none focus:border-yellow-400 ${errors.username && "border-red-500"
+                                        }`}
+                                    placeholder="alexriver"
+                                />
+                            </div>
+                            {errors.username && (
+                                <p className="text-red-400 text-xs mt-1">{errors.username.message}</p>
+                            )}
                         </div>
-                    </div>
 
-                    {/* Avatar Upload */}
-                    <div className="space-y-1 text-left md:col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest flex justify-between">
-                            Avatar Image
-                            {logoError && <span className="text-red-500 lowercase">{logoError}</span>}
-                        </label>
-                        <label className={`p-4 border-2 border-dashed border-black bg-gray-50 flex items-center justify-center gap-4 cursor-pointer hover:bg-yellow-50 transition-colors group ${logoError ? 'border-red-500 bg-red-50' : ''}`}>
-                            <input type="file" className="hidden" onChange={handleLogoChange} accept="image/*" />
-                            <div className="p-3 bg-black text-yellow-400 group-hover:scale-110 transition-transform">
-                                {logo ? <FiImage size={24} /> : <FiShoppingBag size={24} />}
+                        {/* EMAIL */}
+                        <div>
+                            <label className="text-xs text-zinc-400">Email</label>
+                            <div className="relative mt-1">
+                                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <input
+                                    {...register('email')}
+                                    className={`w-full bg-black/50 border border-white/10 rounded-lg p-3 pl-10 text-sm focus:outline-none focus:border-yellow-400 ${errors.email && "border-red-500"
+                                        }`}
+                                    placeholder="you@example.com"
+                                />
                             </div>
-                            <div className="text-left">
-                                <p className="text-xs font-black uppercase">{logo ? logo.name : "Upload your profile image"}</p>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase">PNG, JPG up to 5MB</p>
-                            </div>
-                        </label>
-                    </div>
+                            {errors.email && (
+                                <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
+                            )}
+                        </div>
 
-                    {/* Bio */}
-                    <div className="space-y-1 md:col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest flex justify-between">
-                            Bio
-                            {errors.bio && <span className="text-red-500 lowercase">{errors.bio.message}</span>}
-                        </label>
-                        <div className="relative">
-                            <FiInfo className="absolute left-3 top-4 text-black" />
+                        {/* AVATAR */}
+                        <div>
+                            <label className="text-xs text-zinc-400">Profile Image</label>
+
+                            <label className={`mt-2 flex items-center gap-4 p-4 rounded-lg border border-dashed cursor-pointer transition ${logoError ? "border-red-500 bg-red-500/10" : "border-white/10 hover:border-yellow-400"
+                                }`}>
+                                <input type="file" hidden onChange={handleLogoChange} />
+
+                                <div className="p-3 bg-black border border-white/10 rounded-lg">
+                                    <FiImage />
+                                </div>
+
+                                <div>
+                                    <p className="text-sm">
+                                        {logo ? logo.name : "Upload image"}
+                                    </p>
+                                    <p className="text-xs text-zinc-500">PNG, JPG (max 5MB)</p>
+                                </div>
+                            </label>
+
+                            {logoError && (
+                                <p className="text-red-400 text-xs mt-1">{logoError}</p>
+                            )}
+                        </div>
+
+                        {/* BIO */}
+                        <div>
+                            <label className="text-xs text-zinc-400">Bio</label>
                             <textarea
                                 {...register('bio')}
                                 rows={3}
-                                placeholder="Tell your customers a little about you..."
-                                className={`w-full text-black border-2 border-black p-3 pl-10 font-bold focus:bg-yellow-50 outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${errors.bio ? 'border-red-500 shadow-red-500' : ''}`}
+                                className={`w-full mt-1 bg-black/50 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-yellow-400 ${errors.bio && "border-red-500"
+                                    }`}
+                                placeholder="Tell people about you..."
                             />
+                            {errors.bio && (
+                                <p className="text-red-400 text-xs mt-1">{errors.bio.message}</p>
+                            )}
                         </div>
-                    </div>
 
-                    {/* Password */}
-                    <div className="space-y-1 md:col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest flex justify-between">
-                            Password
-                            {errors.password && <span className="text-red-500 lowercase">{errors.password.message}</span>}
-                        </label>
-                        <div className="relative">
-                            <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-black" />
-                            <input
-                                {...register('password')}
-                                type="password"
-                                placeholder="••••••••"
-                                className={`w-full border-2 border-black p-3 pl-10 font-bold focus:bg-yellow-50 outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${errors.password ? 'border-red-500 shadow-red-500' : ''}`}
-                            />
-                        </div>
-                    </div>
-
-                    {/* TOS Checkbox */}
-                    <div className="md:col-span-2 space-y-2">
-                        <div className="flex items-start gap-3 pt-2">
-                            <div className="relative flex items-center h-5">
+                        {/* PASSWORD */}
+                        <div>
+                            <label className="text-xs text-zinc-400">Password</label>
+                            <div className="relative mt-1">
+                                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                                 <input
-                                    {...register('tos')}
-                                    type="checkbox"
-                                    className={`peer w-5 h-5 border-2 border-black appearance-none checked:bg-yellow-400 cursor-pointer ${errors.tos ? 'border-red-500' : ''}`}
+                                    {...register('password')}
+                                    type="password"
+                                    className={`w-full bg-black/50 border border-white/10 rounded-lg p-3 pl-10 text-sm focus:outline-none focus:border-yellow-400 ${errors.password && "border-red-500"
+                                        }`}
+                                    placeholder="••••••••"
                                 />
-                                <FiCheck className="absolute left-0.5 text-black pointer-events-none opacity-0 peer-checked:opacity-100" />
                             </div>
-                            <p className="text-[10px] font-bold uppercase leading-tight">
-                                I agree to the <a href="#" className="underline">Battle terms</a> and the <a href="#" className="underline">Privacy protocols</a>.
+                            {errors.password && (
+                                <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>
+                            )}
+                        </div>
+
+                        {/* TOS */}
+                        <div className="flex items-start gap-3 text-sm">
+                            <input
+                                type="checkbox"
+                                {...register('tos')}
+                                className="accent-yellow-400 mt-1"
+                            />
+                            <p className="text-zinc-400">
+                                I agree to the <span className="text-yellow-400">Terms</span> and{" "}
+                                <span className="text-yellow-400">Privacy Policy</span>
                             </p>
                         </div>
-                        {errors.tos && <p className="text-red-500 text-[10px] font-black uppercase">{errors.tos.message}</p>}
-                    </div>
+                        {errors.tos && (
+                            <p className="text-red-400 text-xs">{errors.tos.message}</p>
+                        )}
 
-                    <button
-                        disabled={isSubmitting}
-                        className="cursor-pointer md:col-span-2 bg-black text-white py-4 font-black uppercase tracking-[0.2em] border-2 border-black shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] hover:bg-yellow-400 hover:text-black transition-all active:shadow-none active:translate-x-1 active:translate-y-1 disabled:opacity-50 flex justify-center items-center gap-3"
-                    >
-                        {isSubmitting ? <><FiLoader className="animate-spin" /> PROCESSING</> : "SIGN UP"}
-                    </button>
-                </form>
+                        {/* BUTTON */}
+                        <button
+                            disabled={isSubmitting}
+                            className="w-full bg-yellow-400 text-black py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <FiLoader className="animate-spin" />
+                                    Creating account...
+                                </>
+                            ) : (
+                                <>
+                                    Sign Up <FiShoppingBag />
+                                </>
+                            )}
+                        </button>
+                    </form>
 
-                <p className="text-center text-xs font-bold uppercase">
-                    Already a member? <Link to="/login" className="border-b-2 border-black hover:bg-black hover:text-white px-1">Login here</Link>
-                </p>
+                    {/* FOOTER */}
+                    <p className="text-center text-sm text-zinc-400">
+                        Already have an account?{" "}
+                        <Link to="/login" className="text-yellow-400 hover:underline">
+                            Login
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
+
 };
 
 export default SignupPage;

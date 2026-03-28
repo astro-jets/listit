@@ -20,7 +20,7 @@ export const listingController = {
   // GET /listings/shop/:shopId
   async getByShop(request: FastifyRequest, reply: FastifyReply) {
     const { shopId } = request.params as { shopId: string };
-    const listings = await listingModel.getShopListings(parseInt(shopId));
+    const listings = await listingModel.getShopListings(shopId);
     return reply.send(listings);
   },
 
@@ -88,5 +88,25 @@ export const listingController = {
     }
 
     return reply.send(listing);
+  },
+
+  async fetchFeaturedListings(request: FastifyRequest, reply: FastifyReply) {
+    const { page = 1, limit = 12 } = request.params as any;
+
+    const pageNumber = Number(page);
+    const pageSize = Number(limit);
+    const offset = (pageNumber - 1) * pageSize;
+
+    const result = await listingModel.getFeaturedListings(pageSize, offset);
+
+    return reply.send({
+      data: result,
+      pagination: {
+        total: result.total,
+        page: pageNumber,
+        limit: pageSize,
+        totalPages: Math.ceil(result.total / pageSize),
+      },
+    });
   },
 };
