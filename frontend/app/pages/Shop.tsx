@@ -1,11 +1,10 @@
-import React from "react";
 import ListingCard from "~/components/listings/ListingCard";
 import { FiStar, FiMapPin } from "react-icons/fi";
 
 const SHOP = {
     name: "The Rusty Anvil",
-    banner: "/shop-banner.jpg",
-    logo: "/shop-logo.png",
+    banner: "/img.png",
+    logo: "/img.png",
     rating: 4.8,
     location: "Blantyre",
     description:
@@ -34,7 +33,7 @@ const ShopProfile = () => {
                     className="w-full h-full object-cover opacity-40"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black" />
+                <div className="absolute inset-0 bg-linear-to-b from-transparent to-black" />
             </div>
 
             {/* SHOP INFO */}
@@ -44,7 +43,12 @@ const ShopProfile = () => {
                     <div className="flex flex-col md:flex-row md:items-center gap-6">
 
                         {/* LOGO */}
-                        <div className="w-24 h-24 bg-zinc-800 rounded-xl" />
+                        <div className="w-24 h-24 bg-zinc-800 rounded-xl overflow-hidden" >
+                            <img
+                                src={SHOP.banner}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
 
                         {/* INFO */}
                         <div className="flex-1 space-y-2">

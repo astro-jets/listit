@@ -5,6 +5,7 @@ export default [
   index("pages/Home.tsx"),
   route("/explore", "pages/Explore.tsx"),
   route("/shop/:id", "pages/Shop.tsx"),
+  route("/product/:id", "pages/Product.tsx"),
 
   // Admin Routes
   route("/admin/analytics", "pages/admin/Analytics.tsx"),
