@@ -5,6 +5,7 @@ import { authenticate } from "../hooks/auth.hooks";
 export default async function listingsRoutes(app: FastifyInstance) {
   app.post("/", listingController.createListing);
   app.get("/shop/:shopId", listingController.getByShop);
+  app.get("/search/:searchTerm", listingController.searchListing);
   app.patch("/:id", listingController.update);
   app.delete("/:id", listingController.delete);
   // Get listings for the logged-in user
@@ -13,7 +14,11 @@ export default async function listingsRoutes(app: FastifyInstance) {
     { preHandler: authenticate },
     listingController.getMyListings,
   );
-  app.get("/featured", listingController.fetchFeaturedListings);
+  app.get(
+    "/featured",
+    { preHandler: authenticate },
+    listingController.fetchFeaturedListings,
+  );
   // Get a single listing by ID (Public)
   app.get("/:id", listingController.getOne);
 }

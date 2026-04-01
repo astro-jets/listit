@@ -12,6 +12,7 @@ import healthRoute from "./routes/health.route";
 import authRoutes from "./routes/auth.route";
 import listingsRoutes from "./routes/listings.route";
 import shopRoutes from "./routes/shop.route";
+import { favoritesRoutes } from "./routes/favourites.route";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ export async function buildApp() {
   await app.register(authRoutes);
   await app.register(listingsRoutes, { prefix: "/listings" });
   await app.register(shopRoutes, { prefix: "/shops" });
+  await app.register(favoritesRoutes, { prefix: "/favorites" });
 
   return app;
 }

@@ -1,4 +1,3 @@
-import { Pool } from "pg";
 import { pool } from "../db/db";
 
 export const listingModel = {
@@ -142,41 +141,37 @@ export const listingModel = {
     return (result.rowCount ?? 0) > 0;
   },
 
-  async getFeaturedListings(limit: number, offset: number) {
-    // 1. Fetch the listings with shop details and the first image
+  async getFeaturedListings(limit: number, offset: number, userId?: string) {
     const listings = await pool.query(
       `SELECT 
-      l.id,
-      l.title,
-      l.price,
-      l.location,
-      l.category,
-      l.created_at,
-      s.name as shop_name,
-      (
-        SELECT image_url 
-        FROM listing_images 
-        WHERE listing_id = l.id 
-        LIMIT 1
-      ) as image
-    FROM listings l
-    INNER JOIN shops s ON l.shop_id = s.id
-    WHERE l.is_approved = true
-      AND l.status = 'available'
-    ORDER BY l.created_at DESC
-    LIMIT $1 OFFSET $2;
+    l.id,
+    l.title,
+    l.price,
+    l.location,
+    l.category,
+    l.created_at,
+    s.name as shop_name,
+    -- CHANGE THIS: Check f.user_id instead of f.id
+    (CASE WHEN f.user_id IS NOT NULL THEN TRUE ELSE FALSE END) as is_favorited,
+    (
+      SELECT image_url 
+      FROM listing_images 
+      WHERE listing_id = l.id 
+      LIMIT 1
+    ) as image
+FROM listings l
+INNER JOIN shops s ON l.shop_id = s.id
+LEFT JOIN favorites f ON l.id = f.listing_id AND f.user_id = $3
+WHERE l.is_approved = true
+  AND l.status = 'available'
+ORDER BY l.created_at DESC
+LIMIT $1 OFFSET $2;
     `,
-      [limit, offset],
+      [limit, offset, userId || null], // Pass null if user is guest
     );
 
-    // 2. Count total matches using the exact same filters
     const countResult = await pool.query(
-      `SELECT COUNT(*) 
-     FROM listings l
-     INNER JOIN shops s ON l.shop_id = s.id
-     WHERE l.is_approved = true
-       AND l.status = 'available';
-    `,
+      `SELECT COUNT(*) FROM listings WHERE is_approved = true AND status = 'available';`,
     );
 
     return {
@@ -185,6 +180,7 @@ export const listingModel = {
     };
   },
 
+  // backend/src/models/listing.model.ts
   async searchListings(searchTerm: string) {
     const query = `
       SELECT 

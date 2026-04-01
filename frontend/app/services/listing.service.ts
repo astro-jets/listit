@@ -16,16 +16,41 @@ export const submitListing = async (formData: FormData) => {
 };
 
 // search listings with optional query
-export const getListings = async (search?: string) => {
-  const res = await client.get("/listings", {
-    params: { search },
-  });
+export const searchListings = async (search: string) => {
+  const res = await client.get(`/listings/search/${search}`);
   return res.data;
+};
+
+export const toggleFavorite = async (id: string) => {
+  try {
+    const res = await client.post(
+      "/favorites/toggle",
+      { listingId: id },
+      getAuthHeader(),
+    );
+
+    return res.data;
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 //Fetch All listings
 export const getAllListings = async (page: number) => {
-  const res = await client.get(`/listings/featured?page=${page}&limit=12`);
+  const res = await client.get(
+    `/listings/featured?page=${page}&limit=12`,
+    getAuthHeader(),
+  );
+  return res.data;
+};
+
+export const getFavoriteListings = async () => {
+  const res = await client.get(`/favorites`, getAuthHeader());
+  return res.data;
+};
+
+export const getFeaturedShops = async () => {
+  const res = await client.get(`/shops/featured`);
   return res.data;
 };
 

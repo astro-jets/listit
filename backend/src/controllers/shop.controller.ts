@@ -151,4 +151,14 @@ export const shopController = {
       return reply.code(500).send({ error: "Update failed" });
     }
   },
+
+  // 5. Get Featured Shops
+  async getFeaturedShops(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const shops = await shopModel.getFeaturedShops();
+      return reply.send(shops);
+    } catch (error) {
+      return reply.code(500).send({ error: "Could not fetch featured shops" });
+    }
+  },
 };

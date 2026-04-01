@@ -20,7 +20,7 @@ const PublicHeader = () => {
         if (!query.trim()) return;
 
         // Redirect to the listings page with the search query in the URL
-        navigate(`/listings?q=${encodeURIComponent(query)}`);
+        navigate(`/search?q=${encodeURIComponent(query)}`);
     };
     return (
         <header className="sticky top-0 z-50 bg-black/80 backdrop-blur border-b border-white/10">
@@ -41,19 +41,29 @@ const PublicHeader = () => {
                         <Link to="/shops" className="hover:text-yellow-400 transition">
                             Shops
                         </Link>
-                        <Link to="/sell" className="hover:text-yellow-400 transition">
-                            Sell
+                        <Link to="/myshop" className="hover:text-yellow-400 transition">
+                            My Shop
+                        </Link>
+                        <Link to="/favorites" className="hover:text-yellow-400 transition">
+                            Favorites
                         </Link>
                     </nav>
 
                     {/* SEARCH */}
-                    <form onSubmit={handleSearch} className="hidden md:flex items-center bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 w-72">
-                        <FiSearch className="text-zinc-400 mr-2" />
-                        <input
-                            type="text"
-                            placeholder="Search listings..."
-                            className="bg-transparent outline-none text-sm w-full text-white"
-                        />
+                    <form onSubmit={handleSearch} className="hidden md:flex items-center">
+                        <div className="flex items-center pr-2 w-full max-w-xl bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+                            <input
+                                type="text"
+                                placeholder="Search items..."
+                                className="flex-1 bg-transparent px-4 py-3 outline-none text-white placeholder:text-zinc-400"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+
+                            <button className="cursor-pointer bg-yellow-400 text-black p-2 hover:bg-yellow-300 transition rounded-full  border border-white/5 ">
+                                <FiSearch />
+                            </button>
+                        </div>
                     </form>
 
                     {/* RIGHT SIDE */}
@@ -91,14 +101,22 @@ const PublicHeader = () => {
                 <div className="md:hidden bg-black border-t border-white/10 px-4 py-4 space-y-4">
 
                     {/* SEARCH */}
-                    <div className="flex items-center bg-zinc-900 border border-white/10 rounded-lg px-3 py-2">
-                        <FiSearch className="text-zinc-400 mr-2" />
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="bg-transparent outline-none text-sm w-full text-white"
-                        />
-                    </div>
+                    <form onSubmit={handleSearch} className="items-center">
+                        <div className="flex items-center pr-2 w-full max-w-xl bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+                            <input
+                                type="text"
+                                placeholder="Search items..."
+                                className="flex-1 bg-transparent px-4 py-3 outline-none text-white placeholder:text-zinc-400"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+
+                            <button className="cursor-pointer bg-yellow-400 text-black p-2 hover:bg-yellow-300 transition rounded-full  border-3 border-white/5 ">
+                                <FiSearch />
+                            </button>
+                        </div>
+                    </form>
+
 
                     {/* LINKS */}
                     <Link to="/explore" className="block text-zinc-300">

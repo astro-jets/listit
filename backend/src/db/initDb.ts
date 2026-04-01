@@ -5,8 +5,7 @@ export async function initDb(pool: Pool) {
     await pool.query(`
     -- =========================
     -- RESET: DROP ALL TABLES
-    -- =========================
-    DROP TABLE IF EXISTS audit_logs, reports, messages, reviews, listing_images, listings, shops, users, roles CASCADE;
+    -- ========================= DROP TABLE IF EXISTS audit_logs, reports, messages, reviews, listing_images, listings, shops, users, roles CASCADE;
 
     -- =========================
     -- EXTENSIONS
@@ -16,7 +15,7 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- USER ROLES
     -- =========================
-    CREATE TABLE roles (
+    CREATE TABLE IF NOT EXISTS roles (
       id SERIAL PRIMARY KEY,
       name TEXT UNIQUE NOT NULL
     );
@@ -28,7 +27,7 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- USERS
     -- =========================
-    CREATE TABLE users (
+    CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       username TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
@@ -43,15 +42,16 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- SHOPS
     -- =========================
-    CREATE TABLE shops (
+    CREATE TABLE IF NOT EXISTS shops (
       id SERIAL PRIMARY KEY,
       owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       description TEXT,
       logo_url TEXT,
-      location JSONB, -- Coordinates for Leaflet
-      is_approved BOOLEAN DEFAULT false, -- Admin Moderation
-      status TEXT DEFAULT 'available',    -- available, suspended
+      banner_url TEXT, -- Added for your modern shop profile
+      location JSONB, 
+      is_approved BOOLEAN DEFAULT false,
+      status TEXT DEFAULT 'available',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -59,7 +59,7 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- LISTINGS
     -- =========================
-    CREATE TABLE listings (
+    CREATE TABLE IF NOT EXISTS listings (
       id SERIAL PRIMARY KEY,
       shop_id INTEGER REFERENCES shops(id) ON DELETE CASCADE,
       seller_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -67,9 +67,9 @@ export async function initDb(pool: Pool) {
       description TEXT,
       price DECIMAL(10,2) NOT NULL,
       category TEXT,
-      location TEXT, -- Simple string (e.g., "Aisle 4")
-      is_approved BOOLEAN DEFAULT false, -- Admin Moderation
-      status TEXT DEFAULT 'available',    -- available, sold
+      location TEXT,
+      is_approved BOOLEAN DEFAULT false,
+      status TEXT DEFAULT 'available',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -77,14 +77,22 @@ export async function initDb(pool: Pool) {
     -- =========================
     -- SUPPORTING TABLES
     -- =========================
-    CREATE TABLE listing_images (
+    CREATE TABLE IF NOT EXISTS favorites (
+      id SERIAL PRIMARY KEY,
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      listing_id INTEGER REFERENCES listings(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, listing_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS listing_images (
       id SERIAL PRIMARY KEY,
       listing_id INTEGER REFERENCES listings(id) ON DELETE CASCADE,
       image_url TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE reviews (
+    CREATE TABLE IF NOT EXISTS reviews (
       id SERIAL PRIMARY KEY,
       listing_id INTEGER REFERENCES listings(id) ON DELETE CASCADE,
       user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -93,17 +101,17 @@ export async function initDb(pool: Pool) {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE reports (
+    CREATE TABLE IF NOT EXISTS reports (
       id SERIAL PRIMARY KEY,
       reporter_id UUID REFERENCES users(id) ON DELETE SET NULL,
-      target_type TEXT NOT NULL, -- 'listing', 'shop', 'review'
+      target_type TEXT NOT NULL,
       target_id INTEGER NOT NULL,
       reason TEXT NOT NULL,
-      status TEXT DEFAULT 'open', -- open, resolved, dismissed
+      status TEXT DEFAULT 'open',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE audit_logs (
+    CREATE TABLE IF NOT EXISTS audit_logs (
       id SERIAL PRIMARY KEY,
       admin_id UUID REFERENCES users(id) ON DELETE SET NULL,
       action TEXT NOT NULL,
@@ -112,7 +120,7 @@ export async function initDb(pool: Pool) {
     );
 
     -- =========================
-    -- TRIGGERS
+    -- TRIGGERS & FUNCTIONS
     -- =========================
     CREATE OR REPLACE FUNCTION update_timestamp()
     RETURNS TRIGGER AS $$
@@ -122,12 +130,18 @@ export async function initDb(pool: Pool) {
     END;
     $$ LANGUAGE plpgsql;
 
+    -- Drop triggers before creating to avoid "already exists" errors
+    DROP TRIGGER IF EXISTS users_updated ON users;
     CREATE TRIGGER users_updated BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+    DROP TRIGGER IF EXISTS shops_updated ON shops;
     CREATE TRIGGER shops_updated BEFORE UPDATE ON shops FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+    DROP TRIGGER IF EXISTS listings_updated ON listings;
     CREATE TRIGGER listings_updated BEFORE UPDATE ON listings FOR EACH ROW EXECUTE FUNCTION update_timestamp();
     `);
 
-    console.log("✅ Database reset and schema initialized successfully");
+    console.log("✅ Database schema verified and initialized successfully");
   } catch (error) {
     console.error("❌ Database initialization failed:", error);
     throw error;

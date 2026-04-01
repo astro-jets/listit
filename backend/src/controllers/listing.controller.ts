@@ -24,6 +24,12 @@ export const listingController = {
     return reply.send(listings);
   },
 
+  async searchListing(request: FastifyRequest, reply: FastifyReply) {
+    const { searchTerm } = request.params as { searchTerm: string };
+    const listings = await listingModel.searchListings(searchTerm);
+    return reply.send(listings);
+  },
+
   // PATCH /listings/:id
   async update(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string };
@@ -91,13 +97,18 @@ export const listingController = {
   },
 
   async fetchFeaturedListings(request: FastifyRequest, reply: FastifyReply) {
+    const userId = (request.user as any).id;
     const { page = 1, limit = 12 } = request.params as any;
 
     const pageNumber = Number(page);
     const pageSize = Number(limit);
     const offset = (pageNumber - 1) * pageSize;
 
-    const result = await listingModel.getFeaturedListings(pageSize, offset);
+    const result = await listingModel.getFeaturedListings(
+      pageSize,
+      offset,
+      userId,
+    );
 
     return reply.send({
       data: result,

@@ -1,89 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { FiSearch, FiFilter, FiChevronRight } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiSearch, FiFilter, FiChevronRight, FiMapPin } from "react-icons/fi";
 import ListingCard from "~/components/listings/ListingCard";
 import PublicHeader from "../components/layouts/PublicLayout";
-import { getAllListings } from "~/services/listing.service";
-
-// --- MOCK DATA FOR UI DESIGN ---
-const SAMPLE_QUESTS = [
-    {
-        id: 1,
-        title: "Vanguard's Crimson Blade",
-        price: "1,250",
-        category: "Legendary Gear",
-        image: "https://images.unsplash.com/photo-1599140849279-1014532882fe?w=400&q=80",
-        rarity: "legendary",
-        shopName: "The Rusty Anvil",
-        location: "Ironforge District, Aisle 4"
-    },
-    {
-        id: 2,
-        title: "Greater Mana Tincture",
-        price: "45",
-        category: "Consumable",
-        image: "https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?w=400&q=80",
-        rarity: "common",
-        shopName: "Alchemist's Hut",
-        location: "Mage Quarter, Shelf B"
-    },
-    {
-        id: 3,
-        title: "Map to Sunken Temple",
-        price: "300",
-        category: "Quest Item",
-        image: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=400&q=80",
-        rarity: "rare",
-        shopName: "The Dusty Scroll",
-        location: "Trade Winds Harbor"
-    },
-    {
-        id: 4,
-        title: "Gnome-Engineered Compass",
-        price: "150",
-        category: "Tools",
-        image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&q=80",
-        rarity: "uncommon",
-        shopName: "Gizmo Garage",
-        location: "Gearspring City, Unit 7"
-    },
-    {
-        id: 5,
-        title: "Shadow-Stitched Cloak",
-        price: "850",
-        category: "Armor",
-        image: "https://images.unsplash.com/photo-1534073828943-f801091bb18c?w=400&q=80",
-        rarity: "rare",
-        shopName: "Midnight Threads",
-        location: "Shadow Realm Market"
-    },
-    {
-        id: 6,
-        title: "Broken Hero Sword",
-        price: "10",
-        category: "Materials",
-        image: "https://images.unsplash.com/photo-1589703364910-65e3d8d0bb3c?w=400&q=80",
-        rarity: "common",
-        shopName: "Junk & Stuff",
-        location: "The Dumps, Box 3"
-    }
-];
-
-const SHOPS = [
-    {
-        name: "The Rusty Anvil",
-        location: "Blantyre",
-        image: "/shop1.jpg",
-        items: 120,
-    },
-    {
-        name: "Gizmo Garage",
-        location: "Lilongwe",
-        image: "/shop2.jpg",
-        items: 80,
-    },
-];
-
-const TRENDING = SAMPLE_QUESTS.slice(0, 3);
+import { getAllListings, getFeaturedShops } from "~/services/listing.service";
+import { Link, useNavigate } from "react-router";
+import GridLoader from "~/components/modals/GridLoader";
+import type { Shop } from "~/services/types/Shop";
 
 const CITIES = [
     { name: "Blantyre", shops: 120 },
@@ -92,240 +15,215 @@ const CITIES = [
     { name: "Mzuzu", shops: 40 },
 ];
 
-
 const PublicDiscovery = () => {
-    const [searchTerm, setSearchTerm] = useState("");
+    const [query, setquery] = useState("");
     const [listings, setListings] = useState([]);
+    const [shops, setShops] = useState<Shop[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [shopsLoading, setShopsLoading] = useState(true);
 
+    const navigate = useNavigate();
+
+    // Data Fetching
     useEffect(() => {
-        loadListings(page);
+        const loadData = async () => {
+            setLoading(true);
+            try {
+                const res = await getAllListings(page);
+                setListings(res.data.data);
+                setTotalPages(res.pagination.totalPages || 1);
+            } catch (err) {
+                console.error("Error loading listings", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
     }, [page]);
 
-    const loadListings = async (pageNumber: number) => {
-        setLoading(true);
-        const res = await getAllListings(pageNumber);
+    useEffect(() => {
+        const loadShops = async () => {
+            setShopsLoading(true);
+            try {
+                const res = await getFeaturedShops();
+                setShops(res);
+            } finally {
+                setShopsLoading(false);
+            }
+        };
+        loadShops();
+    }, []);
 
-        setListings(res.data.data);
-        setTotalPages(res.pagination.totalPages);
-        setLoading(false);
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!query.trim()) return;
+        navigate(`/search?q=${encodeURIComponent(query)}`);
     };
-    console.log("Fetched Listings:", listings);
+
+    // Reusable Grid Component to keep the JSX clean
+    const ListingGrid = ({ items }: { items: any[] }) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((listing) => (
+                <motion.div
+                    key={listing.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-zinc-900 rounded-xl overflow-hidden border border-white/5 hover:border-yellow-400/40 hover:shadow-[0_0_20px_rgba(250,204,21,0.05)] transition-all duration-300"
+                >
+                    <ListingCard item={listing} />
+                </motion.div>
+            ))}
+        </div>
+    );
+
     return (
         <>
             <PublicHeader />
-            <div className="min-h-screen bg-black text-white font-sans">
-
-                {/* NAV */}
-                {/* <nav className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-                    <h1 className="text-xl font-bold tracking-wide">
-                        <span className="text-yellow-400">LIST</span>.IT
-                    </h1>
-
-                    <div className="flex items-center gap-4">
-                        <button className="text-sm text-zinc-400 hover:text-white transition">
-                            Explore
-                        </button>
-
-                        <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold hover:scale-105 transition">
-                            Log In
-                        </button>
-                    </div>
-                </nav> */}
-
-                {/* HERO */}
-                <section className="relative h-[65vh] flex items-center justify-center overflow-hidden">
-                    <img
-                        src="/img.png"
-                        className="absolute w-full h-full object-cover opacity-40"
+            <div className="min-h-screen bg-black text-white selection:bg-yellow-400/30">
+                {/* HERO SECTION */}
+                <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+                    <motion.img
+                        initial={{ scale: 1.1, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 0.4 }}
+                        transition={{ duration: 1.5 }}
+                        src="/banner.jpg"
+                        className="absolute w-full h-full object-cover"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/60 to-black" />
 
-                    {/* gradient overlay */}
-                    <div className="absolute inset-0 bg-linear-to-b from-black/40 to-black" />
-
-                    <div className="relative text-center space-y-6 px-6">
-                        <h2 className="text-4xl md:text-6xl font-bold leading-tight">
+                    <div className="relative text-center space-y-6 px-6 z-10">
+                        <motion.h2
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="text-4xl md:text-7xl font-bold tracking-tight"
+                        >
                             Discover Rare Items <br />
                             <span className="text-yellow-400">Across the Market</span>
-                        </h2>
+                        </motion.h2>
 
-                        <p className="text-zinc-400 max-w-xl mx-auto">
-                            Find anything — from rare gear to everyday essentials.
-                        </p>
-
-                        {/* SEARCH */}
-                        <div className="flex justify-center">
-                            <div className="flex items-center w-full max-w-xl bg-white/10 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-lg">
-                                <input
-                                    type="text"
-                                    placeholder="Search items..."
-                                    className="flex-1 bg-transparent px-4 py-3 outline-none text-white placeholder:text-zinc-400"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-
-                                <button className="bg-yellow-400 text-black px-4 py-3 hover:bg-yellow-300 transition">
-                                    <FiSearch />
-                                </button>
-                            </div>
-                        </div>
+                        <form onSubmit={handleSearch} className="hidden md:block max-w-2xl mx-auto relative group">
+                            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-yellow-400 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Search items..."
+                                className="w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-yellow-400/50 focus:ring-4 focus:ring-yellow-400/10 transition-all"
+                                value={query}
+                                onChange={(e) => setquery(e.target.value)}
+                            />
+                        </form>
                     </div>
                 </section>
 
-                {/* CONTENT */}
-                <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+                <main className="max-w-7xl mx-auto px-6 py-12 space-y-20">
 
-                    {/* FILTER */}
-                    <div className="flex flex-wrap justify-between items-center gap-4">
-                        <div className="flex items-center gap-6">
-                            <button className="flex items-center gap-2 text-sm text-yellow-400">
-                                <FiFilter /> Filters
-                            </button>
-
-                            <div className="hidden md:flex gap-4 text-sm text-zinc-400">
-                                <span className="text-white">All</span>
-                                <span className="hover:text-white cursor-pointer">Shoes</span>
-                                <span className="hover:text-white cursor-pointer">Clothes</span>
-                                <span className="hover:text-white cursor-pointer">Watches</span>
+                    {/* EXPLORE SECTION */}
+                    <section className="space-y-8">
+                        <div className="flex justify-between items-end border-b border-white/5 pb-6">
+                            <div>
+                                <h2 className="text-3xl font-bold">Latest Gear</h2>
+                                <p className="text-zinc-500 text-sm mt-1">Hand-picked arrivals from local smiths and artisans.</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button className="p-2 rounded-lg bg-zinc-900 border border-white/5 hover:border-yellow-400/40 transition">
+                                    <FiFilter className="text-yellow-400" />
+                                </button>
                             </div>
                         </div>
 
-                        <p className="text-sm text-zinc-400">
-                            {SAMPLE_QUESTS.length} results found
-                        </p>
-                    </div>
-
-                    {/* GRID */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {loading ? (
-                            <p className="text-center text-zinc-400">Loading...</p>
-                        ) :
-                            (
-                                listings.length > 0 ? listings.map((quest) => (
-                                    <div
-                                        key={quest.id}
-                                        className="bg-zinc-900 rounded-xl overflow-hidden border border-white/5 hover:border-yellow-400/40 hover:scale-[1.02] transition-all duration-300 shadow-lg"
-                                    >
-                                        <ListingCard item={quest} />
+                        {loading ? <GridLoader /> : (
+                            <>
+                                {listings.length > 0 ? (
+                                    <ListingGrid items={listings} />
+                                ) : (
+                                    <div className="py-20 text-center bg-zinc-900/30 rounded-3xl border border-dashed border-zinc-800">
+                                        <p className="text-zinc-500">The market seems quiet... try another search.</p>
                                     </div>
-                                )) : <p className="text-center text-zinc-400">No listings found.</p>
-                            )}
+                                )}
 
-                        {/* LOAD MORE */}
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 p-8 text-zinc-400 hover:text-yellow-400 hover:border-yellow-400 transition cursor-pointer">
-                            <FiChevronRight size={28} />
-                            <span className="mt-2 text-sm">Load More</span>
-                        </div>
-                    </div>
-
-                    {/* PAGINATION */}
-                    <div className="flex justify-center gap-2 mt-8">
-                        {[...Array(totalPages)].map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setPage(i + 1)}
-                                className={`px-3 py-1 rounded ${page === i + 1
-                                    ? "bg-yellow-400 text-black"
-                                    : "bg-zinc-800 text-white"
-                                    }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-
-                    <section className="space-y-6">
-                        <h2 className="text-2xl font-bold">🔥 Trending Now</h2>
-
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {TRENDING.map((item) => (
-                                <div
-                                    key={item.id}
-                                    className="bg-zinc-900 rounded-xl border border-white/5 hover:border-yellow-400/30 transition overflow-hidden"
-                                >
-                                    <ListingCard item={item} />
+                                {/* PAGINATION */}
+                                <div className="flex justify-center items-center gap-3 mt-12">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPage(i + 1)}
+                                            className={`w-10 h-10 rounded-xl font-medium transition-all ${page === i + 1
+                                                ? "bg-yellow-400 text-black scale-110"
+                                                : "bg-zinc-900 text-zinc-500 hover:text-white border border-white/5"
+                                                }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
+                            </>
+                        )}
                     </section>
 
-
-                    <section className="space-y-6">
+                    {/* SHOPS NEAR YOU */}
+                    <section className="space-y-8">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-2xl font-bold">Shops Near You</h2>
-                            <button className="text-yellow-400 text-sm">View All</button>
+                            <h2 className="text-3xl font-bold">Shops Near You</h2>
+                            <Link to="/shops" className="text-yellow-400 hover:underline text-sm font-medium">
+                                All Shops
+                            </Link>
                         </div>
 
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {SHOPS.map((shop, i) => (
-                                <div
-                                    key={i}
-                                    className="group relative rounded-xl overflow-hidden bg-zinc-900 border border-white/5 hover:border-yellow-400/30 transition"
-                                >
-                                    <img
-                                        src={shop.image}
-                                        className="h-40 w-full object-cover group-hover:scale-105 transition"
-                                    />
-
-                                    <div className="p-4 space-y-2">
-                                        <h3 className="font-semibold">{shop.name}</h3>
-                                        <p className="text-sm text-zinc-400">{shop.location}</p>
-
-                                        <div className="text-xs text-yellow-400">
-                                            {shop.items} items available
+                        {shopsLoading ? <div className="h-40 flex items-center justify-center text-zinc-600">Gathering shopkeepers...</div> : (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {shops.map((shop, i) => (
+                                    <motion.div
+                                        key={shop.id}
+                                        whileHover={{ y: -5 }}
+                                        className="group cursor-pointer rounded-2xl border border-white/5 bg-zinc-900/40 p-4 hover:bg-zinc-900 transition-colors"
+                                    >
+                                        <div className="relative h-48 w-full overflow-hidden rounded-xl">
+                                            <img
+                                                src={shop.logo_url || "https://via.placeholder.com/400"}
+                                                className="h-full w-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+                                            <div className="absolute bottom-4 left-4 flex items-center gap-2 text-xs font-medium text-white/90">
+                                                <FiMapPin className="text-yellow-400" />
+                                                {/* {shop.location} */}
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                        <div className="mt-4 flex justify-between items-center">
+                                            <h3 className="text-xl font-bold group-hover:text-yellow-400 transition-colors">{shop.name}</h3>
+                                            <Link to={`/shop/${shop.id}`} className="text-[10px] bg-yellow-400/10 text-yellow-400 px-2 py-1 rounded-full border border-yellow-400/20">
+                                                OPEN
+                                            </Link>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
                     </section>
 
-                    <section className="space-y-6">
-                        <h2 className="text-2xl font-bold">Cities With Active Shops</h2>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {CITIES.map((city, i) => (
-                                <div
-                                    key={i}
-                                    className="bg-zinc-900 p-6 rounded-xl border border-white/5 hover:border-yellow-400/30 hover:scale-105 transition text-center"
-                                >
-                                    <h3 className="font-semibold text-lg">{city.name}</h3>
-                                    <p className="text-sm text-zinc-400">
-                                        {city.shops} shops
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                    <section className="relative overflow-hidden rounded-2xl bg-linear-to-br from-yellow-400 to-yellow-300 text-black p-10 mt-10">
-
-                        {/* glow effect */}
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-black/20 rounded-full blur-3xl" />
-
-                        <div className="relative max-w-3xl space-y-6">
-                            <h2 className="text-3xl md:text-4xl font-bold">
-                                Own a Store? Join the Guild
+                    {/* CALL TO ACTION */}
+                    <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-yellow-400 to-yellow-500 text-black p-12">
+                        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-[80px]" />
+                        <div className="relative max-w-2xl space-y-6">
+                            <h2 className="text-4xl md:text-5xl font-black tracking-tighter">
+                                Own a Store? <br />Join the Guild
                             </h2>
-
-                            <p className="text-black/80">
+                            <p className="text-black/70 text-lg font-medium leading-relaxed">
                                 List your store and products for free. Help customers in your city find
                                 exactly what they need — and walk through your door.
                             </p>
-
-                            <button className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:scale-105 transition">
+                            <Link to="/signup" className="bg-black text-white px-8 py-4 rounded-2xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20">
                                 List Your Store — Free
-                            </button>
+                            </Link>
                         </div>
                     </section>
-
-
                 </main>
 
-                {/* FOOTER */}
-                <footer className="border-t border-zinc-800 py-10 text-center text-zinc-500 text-sm">
-                    © 2026 LIST.IT — All rights reserved
+                <footer className="border-t border-white/5 py-12 text-center">
+                    <p className="text-zinc-600 text-sm tracking-widest uppercase font-bold">
+                        © 2026 QUEST FINDER — Built for the Bold
+                    </p>
                 </footer>
             </div>
         </>

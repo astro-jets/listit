@@ -6,6 +6,8 @@ export default [
   route("/explore", "pages/Explore.tsx"),
   route("/shop/:id", "pages/Shop.tsx"),
   route("/product/:id", "pages/Product.tsx"),
+  route("/search/", "pages/Search.tsx"),
+  route("/shops", "pages/Shops.tsx"),
 
   // Admin Routes
   route("/admin/analytics", "pages/admin/Analytics.tsx"),
@@ -14,6 +16,8 @@ export default [
   route("/admin/dashboard", "pages/admin/Dashboard.tsx"),
 
   // User Routes
+
+  route("/favorites", "pages/Favourites.tsx"),
   route("/dashboard", "pages/users/Dashboard.tsx"),
   route("/profile", "pages/users/Profile.tsx"),
   route("/reviews", "pages/users/Reviews.tsx"),

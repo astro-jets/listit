@@ -1,8 +1,18 @@
+import { useState } from "react";
 import { BsShopWindow } from "react-icons/bs";
 import { FiMapPin, FiHeart, FiShoppingBag } from "react-icons/fi";
 import { Link } from "react-router";
+import { toggleFavorite } from "~/services/listing.service";
 
 const ListingCard = ({ item }: any) => {
+    console.log("Rendering ListingCard for item:", item);
+    const [favorited, setFavorited] = useState(item.is_favorited || false);
+
+    const toggleFavoriteListing = async () => {
+        setFavorited(!favorited); // Optimistic UI update
+        const res = await toggleFavorite(item.id);
+        setFavorited(res.favorited);
+    }
     return (
         <div className="group relative bg-zinc-900 rounded-xl overflow-hidden border border-white/5 hover:border-yellow-400/30 transition-all duration-300 hover:scale-[1.02] shadow-lg">
 
@@ -31,8 +41,12 @@ const ListingCard = ({ item }: any) => {
                 </div>
 
                 {/* FAVORITE */}
-                <button className="absolute top-3 right-3 p-2 rounded-full bg-black/60 backdrop-blur border border-white/10 hover:border-yellow-400 transition">
-                    <FiHeart size={14} />
+                <button className="absolute top-3 right-3 p-2 rounded-full bg-black/60 backdrop-blur border border-white/10 hover:border-yellow-400 transition"
+                    onClick={() => { toggleFavoriteListing() }}>
+                    <FiHeart
+                        className={`${favorited ? 'fill-yellow-500 stroke-yellow-500' : 'fill-none stroke-current'}`}
+                        size={14}
+                    />
                 </button>
             </div>
 

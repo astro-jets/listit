@@ -6,6 +6,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
   fastify.post("/", { preHandler: authenticate }, shopController.createShop);
   fastify.get("/:id", { preHandler: authenticate }, shopController.getShopById);
   fastify.get("/me", { preHandler: authenticate }, shopController.getMyShop);
+  fastify.get("/featured", shopController.getFeaturedShops);
   fastify.patch(
     "/update/:id",
     { preHandler: authenticate },

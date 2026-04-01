@@ -68,4 +68,9 @@ export const shopModel = {
 
     return rows[0];
   },
+  async getFeaturedShops() {
+    const query = `SELECT * FROM shops WHERE is_approved = true ORDER BY created_at DESC LIMIT 10`;
+    const { rows } = await sql(query);
+    return rows;
+  },
 };
