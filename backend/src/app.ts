@@ -13,6 +13,8 @@ import authRoutes from "./routes/auth.route";
 import listingsRoutes from "./routes/listings.route";
 import shopRoutes from "./routes/shop.route";
 import { favoritesRoutes } from "./routes/favourites.route";
+import reviewRoutes from "./routes/review.route";
+import { categoryRoutes } from "./routes/categories.route";
 
 dotenv.config();
 
@@ -30,6 +32,8 @@ export async function buildApp() {
   await app.register(listingsRoutes, { prefix: "/listings" });
   await app.register(shopRoutes, { prefix: "/shops" });
   await app.register(favoritesRoutes, { prefix: "/favorites" });
+  await app.register(reviewRoutes, { prefix: "/reviews" });
+  await app.register(categoryRoutes, { prefix: "/categories" });
 
   return app;
 }

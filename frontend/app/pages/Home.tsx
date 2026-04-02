@@ -7,13 +7,8 @@ import { getAllListings, getFeaturedShops } from "~/services/listing.service";
 import { Link, useNavigate } from "react-router";
 import GridLoader from "~/components/modals/GridLoader";
 import type { Shop } from "~/services/types/Shop";
+import ListingGrid from "~/components/listings/ListingGrid";
 
-const CITIES = [
-    { name: "Blantyre", shops: 120 },
-    { name: "Lilongwe", shops: 95 },
-    { name: "Zomba", shops: 60 },
-    { name: "Mzuzu", shops: 40 },
-];
 
 const PublicDiscovery = () => {
     const [query, setquery] = useState("");
@@ -63,21 +58,7 @@ const PublicDiscovery = () => {
     };
 
     // Reusable Grid Component to keep the JSX clean
-    const ListingGrid = ({ items }: { items: any[] }) => (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((listing) => (
-                <motion.div
-                    key={listing.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-zinc-900 rounded-xl overflow-hidden border border-white/5 hover:border-yellow-400/40 hover:shadow-[0_0_20px_rgba(250,204,21,0.05)] transition-all duration-300"
-                >
-                    <ListingCard item={listing} />
-                </motion.div>
-            ))}
-        </div>
-    );
+
 
     return (
         <>
@@ -207,14 +188,14 @@ const PublicDiscovery = () => {
                         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-[80px]" />
                         <div className="relative max-w-2xl space-y-6">
                             <h2 className="text-4xl md:text-5xl font-black tracking-tighter">
-                                Own a Store? <br />Join the Guild
+                                Own a Store? <br />Join the Hustle
                             </h2>
                             <p className="text-black/70 text-lg font-medium leading-relaxed">
                                 List your store and products for free. Help customers in your city find
-                                exactly what they need — and walk through your door.
+                                exactly what they need and walk through your door.
                             </p>
                             <Link to="/signup" className="bg-black text-white px-8 py-4 rounded-2xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20">
-                                List Your Store — Free
+                                List Your Store For Free
                             </Link>
                         </div>
                     </section>

@@ -37,7 +37,7 @@ const ListingCard = ({ item }: any) => {
 
                 {/* CATEGORY BADGE */}
                 <div className="absolute top-3 left-3 bg-black/70 backdrop-blur px-3 py-1 text-xs rounded-full border border-white/10">
-                    {item.category}
+                    {item.category_name}
                 </div>
 
                 {/* FAVORITE */}
@@ -74,12 +74,12 @@ const ListingCard = ({ item }: any) => {
                     {/* LOCATION */}
                     <div className="flex items-center gap-1 text-xs text-zinc-400">
                         <FiMapPin size={12} />
-                        {item.location || "Blantyre"}
+                        {item.location || "N/A"}
                     </div>
                 </div>
 
                 {/* ACTION */}
-                <Link to={`/shop/${item.id}`} className="w-full mt-2 flex items-center justify-center gap-2 text-sm bg-white text-black py-2 rounded-lg font-semibold hover:bg-yellow-400 transition">
+                <Link to={`/shop/${item.shop_id}`} className="w-full mt-2 flex items-center justify-center gap-2 text-sm bg-white text-black py-2 rounded-lg font-semibold hover:bg-yellow-400 transition">
                     <BsShopWindow size={14} />
                     View Shop
                 </Link>

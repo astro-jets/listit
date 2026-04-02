@@ -30,13 +30,29 @@ export const favoritesModel = {
 
   async getUserFavorites(userId: string) {
     const query = `
-      SELECT l.*
-      FROM favorites f
-      JOIN listings l ON l.id = f.listing_id
-      WHERE f.user_id = $1
-      ORDER BY f.created_at DESC
-    `;
-    const { rows } = await pool.query(query, [userId]);
-    return rows;
+    SELECT 
+      l.*, 
+      c.name as category_name,
+      (
+        SELECT image_url 
+        FROM listing_images 
+        WHERE listing_id = l.id 
+        LIMIT 1
+      ) as image,
+      TRUE as is_favorited -- Since we are selecting FROM the favorites table
+    FROM favorites f
+    JOIN listings l ON l.id = f.listing_id
+    JOIN categories c ON l.category_id = c.id
+    WHERE f.user_id = $1
+    ORDER BY f.created_at DESC
+  `;
+
+    try {
+      const { rows } = await pool.query(query, [userId]);
+      return rows;
+    } catch (error) {
+      console.error("Error fetching user favorites:", error);
+      throw error;
+    }
   },
 };

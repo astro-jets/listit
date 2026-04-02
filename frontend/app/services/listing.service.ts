@@ -15,6 +15,11 @@ export const submitListing = async (formData: FormData) => {
   return res.data;
 };
 
+export const getCategories = async () => {
+  const res = await client.get(`/categories`);
+  return res.data;
+};
+
 // search listings with optional query
 export const searchListings = async (search: string) => {
   const res = await client.get(`/listings/search/${search}`);
