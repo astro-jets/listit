@@ -10,7 +10,7 @@ const start = async () => {
     const app = await buildApp();
 
     // Reset Database
-    await resetDb(pool);
+    // await resetDb(pool);
 
     // Initialize database
     await initDb(pool);
