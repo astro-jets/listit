@@ -94,6 +94,15 @@ export async function initDb(pool: Pool) {
         UNIQUE(user_id, listing_id)
       );
 
+      CREATE TABLE IF NOT EXISTS review_replies (
+        id SERIAL PRIMARY KEY,
+        review_id INTEGER REFERENCES reviews(id) ON DELETE CASCADE,
+        shop_id INTEGER REFERENCES shops(id) ON DELETE CASCADE,
+        reply_text TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(review_id) -- One reply per review
+    );
+
       -- 8. SEED CATEGORIES
       INSERT INTO categories (name, slug) VALUES 
       ('Weapons', 'weapons'),

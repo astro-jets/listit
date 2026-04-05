@@ -1,13 +1,15 @@
 import ListingCard from "~/components/listings/ListingCard";
-import { FiStar, FiMapPin, FiAlertCircle, FiLoader, FiCheckCircle, FiMessageSquare, FiSend } from "react-icons/fi";
+import { FiStar, FiMapPin, FiAlertCircle, FiLoader, FiCheckCircle, FiMessageSquare, FiSend, FiTrash2 } from "react-icons/fi";
 import PublicHeader from "~/components/layouts/PublicLayout";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { getShopListings } from "~/services/listing.service";
 import { getShopById } from "~/services/shop.service";
+import { ReviewApiService } from "~/services/reviews.service";
 import { motion } from "framer-motion";
 import React from "react";
 import { FaDirections } from "react-icons/fa";
+import { useAuth } from "~/context/AuthContext";
 
 const LocationViewer = React.lazy(() => import("../components/maps/LocationViewr"));
 
@@ -20,20 +22,28 @@ const ShopProfile = () => {
     const [error, setError] = useState<string | null>(null);
 
     // Review State
+    const [reviews, setReviews] = useState<any[]>([]);
     const [comment, setComment] = useState("");
     const [rating, setRating] = useState(5);
+
+    const [hover, setHover] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchShopData = async () => {
             if (!id) return;
             try {
                 setIsLoading(true);
-                const [shopData, productsData] = await Promise.all([
+                const [shopData, productsData, reviewsData] = await Promise.all([
                     getShopById(id),
-                    getShopListings(id)
+                    getShopListings(id),
+                    ReviewApiService.getShopReviews(id)
                 ]);
                 setShop(shopData);
                 setProducts(productsData);
+                setReviews(reviewsData)
             } catch (err) {
                 setError("Merchant record not found in this sector.");
             } finally {
@@ -42,6 +52,7 @@ const ShopProfile = () => {
         };
         fetchShopData();
     }, [id]);
+
 
     if (isLoading) {
         return (
@@ -64,17 +75,48 @@ const ShopProfile = () => {
 
     const coords = shop.location || { lat: 0, lng: 0 };
 
+    const handleSubmitReview = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (rating === 0) return alert("Please select a rating.");
+
+        setIsLoading(true);
+        try {
+            await ReviewApiService.postShopReview({
+                shop_id: Number(shop.id),
+                rating,
+                comment
+            });
+            // Reset form and refresh reviews
+            setRating(0);
+            setComment("");
+        } catch (err) {
+            alert("Unauthorized: Please log in to leave a review.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDeleteReview = async (reviewId: string) => {
+        if (!window.confirm("Delete this review?")) return;
+        try {
+            await ReviewApiService.deleteReview(reviewId);
+            setReviews(reviews.filter(r => r.id !== reviewId));
+        } catch (err) {
+            alert("Failed to delete review.");
+        }
+    };
+
     return (
         <div className="bg-black text-white min-h-screen selection:bg-yellow-400/30">
             <PublicHeader />
 
             {/* HERO BANNER */}
-            <div className="relative h-[300px] w-full overflow-hidden">
+            <div className="relative h-75 w-full overflow-hidden">
                 <img
                     src={shop.logo_url || "/placeholder-banner.png"}
                     className="w-full h-full object-cover object-bottom opacity-60"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent" />
             </div>
 
             {/* SHOP IDENTITY SECTION */}
@@ -85,7 +127,7 @@ const ShopProfile = () => {
                     <motion.div
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="w-40 h-40 md:w-48 md:h-48 bg-zinc-900 rounded-3xl overflow-hidden border-4 border-black shadow-2xl shadow-yellow-400/10 flex-shrink-0"
+                        className="w-40 h-40 md:w-48 md:h-48 bg-zinc-900 rounded-3xl overflow-hidden border-4 border-black shadow-2xl shadow-yellow-400/10 shrink-0"
                     >
                         <img
                             src={shop.logo_url || "/img.png"}
@@ -173,40 +215,72 @@ const ShopProfile = () => {
                             </h2>
 
                             {/* REVIEW FORM */}
-                            <div className="bg-zinc-900/50 p-6 rounded-3xl border border-white/5 space-y-4">
-                                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Rate your experience</p>
-                                <div className="flex gap-2">
-                                    {[1, 2, 3, 4, 5].map(s => (
-                                        <FiStar
-                                            key={s}
-                                            className={`text-2xl cursor-pointer ${s <= rating ? 'text-yellow-400' : 'text-zinc-700'}`}
-                                            fill={s <= rating ? 'currentColor' : 'none'}
-                                            onClick={() => setRating(s)}
-                                        />
+
+                            <form onSubmit={handleSubmitReview} className="bg-zinc-900/30 p-6 rounded-3xl border border-white/5 space-y-4">
+                                <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setRating(star)}
+                                            onMouseEnter={() => setHover(star)}
+                                            onMouseLeave={() => setHover(0)}
+                                            className="text-2xl transition-all"
+                                        >
+                                            <FiStar fill={(hover || rating) >= star ? "#facc15" : "transparent"}
+                                                className={(hover || rating) >= star ? "text-yellow-400" : "text-zinc-800"} />
+                                        </button>
                                     ))}
                                 </div>
                                 <textarea
-                                    className="w-full bg-black border border-white/10 rounded-2xl p-4 text-sm focus:border-yellow-400 outline-none transition-all h-28 resize-none"
-                                    placeholder="Write your review..."
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Write your review..."
+                                    className="w-full bg-black border border-white/5 rounded-2xl p-4 text-sm focus:border-yellow-400 outline-none h-32 resize-none transition-all"
                                 />
-                                <button className="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2">
-                                    <FiSend /> Post Review
+                                <button
+                                    disabled={isSubmitting}
+                                    type="submit"
+                                    className="w-full bg-white text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-yellow-400 transition-colors disabled:opacity-50"
+                                >
+                                    {isSubmitting ? "UPLOADING..." : <><FiSend /> POST REVIEW</>}
                                 </button>
-                            </div>
+                            </form>
 
                             {/* MINI REVIEW FEED */}
-                            <div className="space-y-6 pt-4">
-                                {[1, 2].map(i => (
-                                    <div key={i} className="space-y-2 border-l-2 border-yellow-400/20 pl-4">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm font-bold text-white">Verified Buyer</span>
-                                            <div className="flex text-[10px] text-yellow-400"><FiStar fill="currentColor" /><FiStar fill="currentColor" /><FiStar fill="currentColor" /></div>
+                            <div className="lg:col-span-2 space-y-10">
+                                {reviews.length > 0 ? reviews.map((r) => (
+                                    <div key={r.id} className="group space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                <img src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.username}`} className="w-10 h-10 rounded-full border border-white/10" />
+                                                <div>
+                                                    <h4 className="font-bold text-sm">{r.username}</h4>
+                                                    <p className="text-[10px] text-zinc-600 font-mono uppercase">
+                                                        {new Date(r.created_at).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex text-yellow-400 text-xs">
+                                                    {[...Array(r.rating)].map((_, i) => <FiStar key={i} fill="currentColor" />)}
+                                                </div>
+                                                {r.user_id === user?.id && (
+                                                    <button onClick={() => handleDeleteReview(r.id)} className="text-zinc-700 hover:text-red-500 transition-colors">
+                                                        <FiTrash2 size={16} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                        <p className="text-zinc-400 text-sm italic">"Solid merchant. The items were exactly as described and the pickup was smooth."</p>
+                                        <p className="text-zinc-400 text-sm leading-relaxed border-l-2 border-yellow-400/20 pl-4">
+                                            {r.comment}
+                                        </p>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="h-full flex items-center justify-center text-zinc-700 font-mono italic">
+                                        NO REVIEWS RECORDED IN THIS SECTOR.
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

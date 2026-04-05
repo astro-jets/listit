@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiUser, FiSearch, FiStar, FiFilter, FiMessageSquare, FiTrendingUp } from 'react-icons/fi';
 import DashboardLayout from '~/components/layouts/DashboardLayout';
+import { getShopReviews, replyToReview } from '~/services/shop.service';
 
 interface Review {
     id: number;
@@ -15,14 +16,37 @@ interface Review {
 const ReviewsPage = () => {
     const [filter, setFilter] = useState<number | 'all'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock Data for Business Reviews
-    const reviews: Review[] = [
-        { id: 1, userName: "Vintage Hunter", rating: 5, comment: "The Leica M3 was exactly as described. Exceptional service and fast shipping!", date: "2m ago", productName: "Leica M3 Camera", replied: true },
-        { id: 2, userName: "Sarah Jenkins", rating: 4, comment: "Great item, but the packaging was a bit flimsy. Luckily nothing broke.", date: "1h ago", productName: "Glass Vase", replied: false },
-        { id: 3, userName: "Retro Collective", rating: 5, comment: "Always a pleasure buying from this shop. Authentic finds every time.", date: "3h ago", productName: "90s Windbreaker", replied: false },
-        { id: 4, userName: "Marcus Sold", rating: 2, comment: "Item took forever to arrive. Communication could be better.", date: "1d ago", productName: "Mechanical Watch", replied: true },
-    ];
+    useEffect(() => {
+        const loadReviews = async () => {
+            alert("Loading Reviews")
+            try {
+                const data = await getShopReviews("1");
+                setReviews(data);
+            } catch (err) {
+                console.error("Failed to fetch reviews");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadReviews();
+    }, []);
+
+    const handleReply = async (reviewId: number) => {
+        const text = prompt("Enter your response:");
+        if (!text) return;
+
+        try {
+            await replyToReview(reviewId, text);
+            setReviews(prev => prev.map(r =>
+                r.id === reviewId ? { ...r, replied: true } : r
+            ));
+        } catch (err) {
+            alert("Reply failed to send.");
+        }
+    };
 
     const filteredReviews = reviews.filter(rev => {
         const matchesRating = filter === 'all' || rev.rating === filter;
@@ -127,7 +151,7 @@ const ReviewsPage = () => {
                                     "{rev.comment}"
                                 </div>
 
-                                <div className="flex justify-end gap-2">
+                                {/* <div className="flex justify-end gap-2">
                                     {rev.replied ? (
                                         <span className="text-[10px] font-black uppercase bg-green-400 px-2 py-1 border-2 border-black flex items-center gap-1">
                                             <FiMessageSquare /> Replied
@@ -137,7 +161,7 @@ const ReviewsPage = () => {
                                             Write Response
                                         </button>
                                     )}
-                                </div>
+                                </div> */}
                             </div>
                         )) : (
                             <div className="py-20 text-center">

@@ -40,3 +40,21 @@ export const updateShop = async (
   });
   return res.data;
 };
+
+export const getShopReviews = async (shopId: string) => {
+  const res = await client.get(`/shops/reviews/${shopId}`, getAuthHeader());
+  return res.data;
+};
+
+export const replyToReview = async (reviewId: number, replyText: string) => {
+  return await client.post(
+    "/shops/reviews/reply",
+    { reviewId, replyText },
+    getAuthHeader(),
+  );
+};
+
+export const getDashboardData = async () => {
+  const res = await client.get("/shops/dashboard", getAuthHeader());
+  return res.data;
+};

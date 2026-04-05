@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { shopModel } from "../models/shop.model";
 import { processMultipartImages } from "../services/blob.service";
 import { del } from "@vercel/blob";
+import { pool } from "../db/db";
 
 declare module "fastify" {
   interface AuthenticatedUser {
@@ -159,6 +160,63 @@ export const shopController = {
       return reply.send(shops);
     } catch (error) {
       return reply.code(500).send({ error: "Could not fetch featured shops" });
+    }
+  },
+  async getDashboardData(request: FastifyRequest, reply: FastifyReply) {
+    const userId = (request as any).user.id;
+
+    // 1. Fetch Listings by joining through the Shops table
+    const listingsQuery = `
+    SELECT 
+      l.id, 
+      l.title, 
+      c.name as category, 
+      l.price, 
+      l.status
+    FROM listings l
+    JOIN shops s ON l.shop_id = s.id
+    LEFT JOIN categories c ON l.category_id = c.id
+    WHERE s.owner_id = $1::uuid 
+    ORDER BY l.created_at DESC
+    LIMIT 10
+  `;
+
+    // 2. Fetch Stats by joining through the Shops table
+    const statsQuery = `
+  SELECT 
+    -- 1. Count of available listings (Functional)
+    COUNT(DISTINCT l.id) FILTER (WHERE l.status = 'available') as live_listings,
+    
+    -- 2. Total "Likes" (From Favorites table)
+    COUNT(DISTINCT f.id) as total_favorites,
+    
+    -- 3. Shop Reputation (From Reviews table)
+    ROUND(AVG(r.rating), 1) as avg_rating
+  FROM shops s
+  LEFT JOIN listings l ON s.id = l.shop_id
+  LEFT JOIN favorites f ON l.id = f.listing_id
+  LEFT JOIN reviews r ON s.id = r.shop_id OR l.id = r.listing_id
+  WHERE s.owner_id = $1::uuid
+  GROUP BY s.id
+`;
+
+    try {
+      const [listings, stats] = await Promise.all([
+        pool.query(listingsQuery, [userId]),
+        pool.query(statsQuery, [userId]),
+      ]);
+
+      return {
+        listings: listings.rows,
+        stats: stats.rows[0] || {
+          live_listings: 0,
+          total_views: 0,
+          messages: 0,
+        },
+      };
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(500).send({ error: "INTERNAL_SERVER_ERROR" });
     }
   },
 };

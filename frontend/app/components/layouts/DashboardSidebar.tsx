@@ -1,4 +1,5 @@
 import React from 'react';
+import { BsGlobe } from 'react-icons/bs';
 import { FiShoppingBag, FiPlus, FiMessageCircle, FiPackage } from "react-icons/fi";
 import { useLocation, Link } from "react-router";
 
@@ -61,25 +62,11 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ isSidebarOpen }) => {
                     isOpen={isSidebarOpen}
                     currentPath={location.pathname}
                 />
-                <SidebarItem
-                    icon={ChartIcon}
-                    label="Analytics"
-                    url="/analytics"
-                    isOpen={isSidebarOpen}
-                    currentPath={location.pathname}
-                />
-                <SidebarItem
-                    icon={UserIcon}
-                    label="Profile"
-                    url="/profile"
-                    isOpen={isSidebarOpen}
-                    currentPath={location.pathname}
-                />
             </nav>
 
             {/* Footer Action */}
             <div className="p-4">
-                <button
+                <Link to={'/'}
                     title={!isSidebarOpen ? "New Post" : ""}
                     className={`
             w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold 
@@ -87,9 +74,9 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ isSidebarOpen }) => {
             transition-all active:scale-95 shadow-[0_0_15px_rgba(250,204,21,0.2)]
           `}
                 >
-                    <PlusIcon />
-                    {isSidebarOpen && <span className="whitespace-nowrap">New Post</span>}
-                </button>
+                    <BsGlobe />
+                    {isSidebarOpen && <span className="whitespace-nowrap">Public View</span>}
+                </Link>
             </div>
         </aside>
     );

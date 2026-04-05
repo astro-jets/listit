@@ -14,6 +14,7 @@ export default [
   route("/admin/listings", "pages/admin/Listings.tsx"),
   route("/admin/shops", "pages/admin/Shops.tsx"),
   route("/admin/dashboard", "pages/admin/Dashboard.tsx"),
+  route("/admin/reviews", "pages/admin/Reviews.tsx"),
 
   // User Routes
 

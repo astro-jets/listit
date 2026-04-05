@@ -11,7 +11,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     return (
         <div className="flex min-h-screen bg-gray-50 text-black font-sans">
 
-            <AdminSidebar isSidebarOpen={isSidebarOpen} setIsCollapsed={setSidebarOpen} />
+            <div className="hidden md:block">
+                <AdminSidebar isSidebarOpen={isSidebarOpen} setIsCollapsed={setSidebarOpen} />
+            </div>
 
             {/* --- MAIN CONTENT --- */}
             <main className="flex-1 flex flex-col">

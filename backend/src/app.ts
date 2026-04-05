@@ -15,6 +15,7 @@ import shopRoutes from "./routes/shop.route";
 import { favoritesRoutes } from "./routes/favourites.route";
 import reviewRoutes from "./routes/review.route";
 import { categoryRoutes } from "./routes/categories.route";
+import { adminRoutes } from "./routes/admin.route";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ export async function buildApp() {
   await app.register(favoritesRoutes, { prefix: "/favorites" });
   await app.register(reviewRoutes, { prefix: "/reviews" });
   await app.register(categoryRoutes, { prefix: "/categories" });
+  await app.register(adminRoutes, { prefix: "/admin" });
 
   return app;
 }

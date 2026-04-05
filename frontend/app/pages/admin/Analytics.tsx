@@ -1,54 +1,130 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
+import { FiActivity, FiArrowUpRight, FiLoader } from 'react-icons/fi';
 import AdminLayout from '~/components/layouts/AdminLayout';
+import { getAdminStats, getGrowthMetrics } from '~/services/admin.service';
 
 const AdminAnalytics = () => {
-    const data = [
-        { name: 'Jan', users: 4000, shops: 240 },
-        { name: 'Feb', users: 5500, shops: 290 },
-        { name: 'Mar', users: 7200, shops: 400 },
-    ];
+    const [chartData, setChartData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchMetrics = async () => {
+            try {
+                const data = await getGrowthMetrics();
+                const formattedData = data.map((item: any) => ({
+                    ...item,
+                    users: parseInt(item.users || 0, 10),
+                    shops: parseInt(item.shops || 0, 10)
+                }));
+
+                setChartData(formattedData);
+            } catch (err) {
+                console.error("Metrics sync failed", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMetrics();
+    }, []);
+
+    if (loading) return (
+        <AdminLayout>
+            <div className="h-screen flex items-center justify-center font-black uppercase italic">
+                <FiLoader className="animate-spin mr-2" /> Initializing_Metrics...
+            </div>
+        </AdminLayout>
+    );
 
     return (
         <AdminLayout>
-            <div className="p-6 space-y-8">
-                <h1 className="text-6xl font-black uppercase italic tracking-tighter">System <span className="text-yellow-400">Metrics</span></h1>
+            <div className="p-8 space-y-10">
+                {/* --- TITLE --- */}
+                <div className="flex justify-between items-baseline border-b-8 border-black pb-4">
+                    <h1 className="text-7xl font-black uppercase italic tracking-tighter">
+                        System <span className="text-yellow-400 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">Metrics</span>
+                    </h1>
+                    <div className="bg-black text-white px-4 py-1 font-mono text-xs font-bold uppercase animate-pulse">
+                        Live_Feed_Active
+                    </div>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* User Growth Chart */}
-                    <div className="border-4 border-black p-6 bg-white shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-                        <h2 className="text-xl font-black uppercase mb-6 flex items-center gap-2">
-                            <div className="w-3 h-3 bg-yellow-400 border border-black" /> User Acquisition
-                        </h2>
-                        <div className="h-64">
+                {/* --- CHARTS GRID --- */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+
+                    {/* User Growth */}
+                    <div className="border-4 border-black p-8 bg-white shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+                        <div className="flex justify-between items-start mb-8">
+                            <div>
+                                <h2 className="text-2xl font-black uppercase flex items-center gap-3">
+                                    <div className="w-4 h-4 bg-yellow-400 border-2 border-black" />
+                                    User Acquisition
+                                </h2>
+                                <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">Growth per month (Last 6 Months)</p>
+                            </div>
+                            <FiArrowUpRight className="text-3xl" />
+                        </div>
+
+                        <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#000" strokeOpacity={0.1} />
-                                    <XAxis dataKey="name" axisLine={{ stroke: '#000', strokeWidth: 2 }} tick={{ fontStyle: 'bold', fill: '#000' }} />
-                                    <YAxis hide />
-                                    <Tooltip contentStyle={{ border: '4px solid black', fontWeight: '900', textTransform: 'uppercase' }} />
-                                    <Line type="stepAfter" dataKey="users" stroke="#000" strokeWidth={5} dot={{ r: 8, fill: '#facc15', stroke: '#000', strokeWidth: 3 }} />
+                                <LineChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="#e5e7eb" strokeWidth={2} />
+                                    <XAxis dataKey="name" axisLine={{ stroke: '#000', strokeWidth: 4 }} tick={{ fontWeight: '900', fill: '#000', fontSize: 12 }} dy={10} />
+                                    <YAxis axisLine={{ stroke: '#000', strokeWidth: 4 }} tick={{ fontWeight: '900', fill: '#000' }} />
+                                    <Tooltip
+                                        cursor={{ stroke: '#000', strokeWidth: 2 }}
+                                        contentStyle={{ border: '4px solid black', borderRadius: '0px', padding: '10px', fontWeight: '900' }}
+                                    />
+                                    <Line
+                                        type="stepAfter"
+                                        dataKey="users"
+                                        stroke="#000"
+                                        strokeWidth={6}
+                                        dot={{ r: 10, fill: '#facc15', stroke: '#000', strokeWidth: 4 }}
+                                        activeDot={{ r: 12, fill: '#000' }}
+                                    />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    {/* Quick System Log */}
-                    <div className="border-4 border-black p-6 bg-white shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-                        <h2 className="text-xl font-black uppercase mb-6">Recent Events</h2>
-                        <div className="space-y-4">
-                            {[
-                                { ev: "New Shop Verified", time: "2m ago", color: "bg-green-400" },
-                                { ev: "Listing Flagged", time: "15m ago", color: "bg-red-500" },
-                                { ev: "Server Load 80%", time: "1h ago", color: "bg-yellow-400" },
-                            ].map((log, i) => (
-                                <div key={i} className="flex justify-between items-center border-b-2 border-black pb-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 border border-black ${log.color}`} />
-                                        <span className="font-bold text-xs uppercase">{log.ev}</span>
-                                    </div>
-                                    <span className="text-[10px] font-black text-gray-400 uppercase">{log.time}</span>
-                                </div>
-                            ))}
+                    {/* Shop Expansion (Area Chart) */}
+                    <div className="border-4 border-black p-8 bg-white shadow-[16px_16px_0px_0px_rgba(34,211,238,1)]">
+                        <h2 className="text-2xl font-black uppercase mb-8 flex items-center gap-3">
+                            <div className="w-4 h-4 bg-cyan-400 border-2 border-black" />
+                            Merchant Scale
+                        </h2>
+                        <div className="h-72">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#000" strokeOpacity={0.1} />
+                                    <XAxis dataKey="name" axisLine={{ stroke: '#000', strokeWidth: 4 }} tick={{ fontWeight: '900', fill: '#000' }} dy={10} />
+                                    <YAxis axisLine={{ stroke: '#000', strokeWidth: 4 }} tick={{ fontWeight: '900', fill: '#000' }} />
+                                    <Tooltip contentStyle={{ border: '4px solid black', fontWeight: '900' }} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="shops"
+                                        stroke="#0891b2"
+                                        strokeWidth={4}
+                                        fill="#22d3ee"
+                                        fillOpacity={1}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* System Log Footer */}
+                    <div className="xl:col-span-2 border-4 border-black p-6 bg-black text-white">
+                        <div className="flex gap-10 overflow-hidden whitespace-nowrap">
+                            {/* Neobrutalist Scrolling Marquee Style */}
+                            <div className="flex gap-10 animate-marquee uppercase font-black italic text-sm">
+                                <span>SYSTEM_STATUS: OK</span>
+                                {/* <span className="text-yellow-400">USERS_ONLINE: {chartData[chartData.length - 1]?.users || 0}</span> */}
+                                <span>DB_LATENCY: 24MS</span>
+                                <span className="text-cyan-400">ACTIVE_SESSIONS: 412</span>
+                                <span>LOAD_BALANCER: STABLE</span>
+                            </div>
                         </div>
                     </div>
                 </div>

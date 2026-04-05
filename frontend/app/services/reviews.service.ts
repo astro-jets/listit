@@ -12,6 +12,11 @@ export const ReviewApiService = {
     return res.data;
   },
 
+  async getShopReviews(shopId: string | number) {
+    const res = await client.get(`/reviews/shop/${shopId}`);
+    return res.data;
+  },
+
   /**
    * Submit a new review
    */
@@ -21,6 +26,15 @@ export const ReviewApiService = {
     comment: string;
   }) {
     const res = await client.post(`/reviews`, data, getAuthHeader());
+    return res.data;
+  },
+
+  async postShopReview(data: {
+    shop_id: number;
+    rating: number;
+    comment: string;
+  }) {
+    const res = await client.post(`/reviews/shop`, data, getAuthHeader());
     return res.data;
   },
 

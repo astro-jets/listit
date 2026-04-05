@@ -171,9 +171,9 @@ const ProductDetail = () => {
                         </Link>
 
                         <div className="flex gap-4">
-                            <button className="flex-[4] bg-yellow-400 text-black py-4 rounded-xl font-black hover:bg-yellow-300 transition-transform active:scale-95 shadow-xl shadow-yellow-400/10">
+                            <Link to={`/shop/${listing.shop_id}`} className="flex-4 p-4 bg-yellow-400 text-black py-4 rounded-xl font-black hover:bg-yellow-300 transition-transform active:scale-95 shadow-xl shadow-yellow-400/10">
                                 CONTACT SELLER
-                            </button>
+                            </Link>
                             <button className="flex-1 flex items-center justify-center border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
                                 <FiHeart size={24} />
                             </button>
