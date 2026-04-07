@@ -105,8 +105,14 @@ export async function initDb(pool: Pool) {
 
       -- 8. SEED CATEGORIES
       INSERT INTO categories (name, slug) VALUES 
-      ('Weapons', 'weapons'), ('Armor', 'armor'), ('Potions', 'potions'), 
-      ('Tools', 'tools'), ('Artifacts', 'artifacts')
+      ('Clothing', 'clothing'),
+      ('Electronics', 'electronics'),
+      ('Accessories', 'accessories'),
+      ('Home & Garden', 'home-garden'),
+      ('Health & Beauty', 'health-beauty'),
+      ('Toys & Hobbies', 'toys-hobbies'),
+      ('Sports', 'sports'),
+      ('Automotive', 'automotive')
       ON CONFLICT DO NOTHING;
 
       -- 9. SEED DEFAULT ADMIN USER
