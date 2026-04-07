@@ -1,6 +1,5 @@
 import React from 'react';
-import { FaDoorOpen } from 'react-icons/fa';
-import { FiShoppingBag, FiPlus, FiMessageCircle, FiPackage } from "react-icons/fi";
+import { FiShoppingBag, FiMessageCircle, FiPackage, FiGlobe } from "react-icons/fi";
 import { useLocation, Link } from "react-router";
 
 interface SidebarProps {
@@ -72,17 +71,17 @@ const AdminSidebar: React.FC<SidebarProps> = ({ isSidebarOpen }) => {
 
             {/* Footer Action */}
             <div className="p-4">
-                <button
-                    title={!isSidebarOpen ? "New Post" : ""}
+                <Link
+                    to={'/'}
                     className={`
             w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold 
             py-3 rounded-lg flex items-center justify-center gap-2 
             transition-all active:scale-95 shadow-[0_0_15px_rgba(250,204,21,0.2)]
           `}
                 >
-                    <FaDoorOpen size={30} />
-                    {isSidebarOpen && <span className="whitespace-nowrap">Log Out</span>}
-                </button>
+                    <FiGlobe size={30} />
+                    {isSidebarOpen && <span className="whitespace-nowrap">Public View</span>}
+                </Link>
             </div>
         </aside>
     );

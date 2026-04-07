@@ -17,6 +17,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         if (!loading && !user) {
             navigate('/');
         }
+        if (user && user.role !== 1) {
+            navigate('/');
+        }
     }, [user, loading, navigate]);
 
     // Show a loading state or nothing while checking auth 

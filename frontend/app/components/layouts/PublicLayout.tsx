@@ -41,7 +41,7 @@ const PublicHeader = () => {
                         </Link>
 
                         {/* --- AUTH PROTECTED LINKS --- */}
-                        {user && (
+                        {user && user.role === 2 && (
                             <>
                                 <Link to="/myshop" className="hover:text-yellow-400 transition">
                                     My Shop
@@ -54,15 +54,24 @@ const PublicHeader = () => {
                     </nav>
 
                     {/* SEARCH - (Keep as is) */}
-                    <form onSubmit={handleSearch} className="hidden md:flex items-center">
-                        {/* ... search input code ... */}
+                    <form onSubmit={handleSearch} className="hidden md:flex items-center group relative">
+                        <button type="submit" className="bg-yellow-500 rounded-full z-999 absolute right-4 top-1/2 -translate-y-1/2 p-1 cursor-pointer group-focus-within:bg-yellow-400 transition">
+                            <FiSearch className=" text-zinc-500 " color="black" />
+                        </button>
+                        <input
+                            type="text"
+                            placeholder="Search items..."
+                            className="w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl py-2 pr-12 pl-4 outline-none focus:border-yellow-400/50 focus:ring-4 focus:ring-yellow-400/10 transition-all"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                        />
                     </form>
 
                     {/* RIGHT SIDE */}
                     <div className="flex items-center gap-4">
                         {user ? (
                             <div className="flex items-center gap-4">
-                                <Link to="/dashboard" className="hidden md:flex items-center gap-3 cursor-pointer text-white">
+                                <Link to={user.role === 2 ? "/dashboard" : "/admin/dashboard"} className="hidden md:flex items-center gap-3 cursor-pointer text-white">
                                     <FiUser size={18} />
                                     {user.username}
                                 </Link>

@@ -40,8 +40,11 @@ const LoginPage = () => {
             const response = await login(data.email, data.password);
 
             authLogin(response.token, response.user);
-
-            navigate('/');
+            if (response.user.role === 1) {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/');
+            }
         } catch (err: any) {
             setServerError(err.response?.data?.error || "Invalid credentials");
         } finally {

@@ -12,7 +12,7 @@ export async function initDb(pool: Pool) {
       );
       INSERT INTO roles (name) VALUES ('admin'), ('seller'), ('buyer') ON CONFLICT DO NOTHING;
 
-      -- 2. CATEGORIES 
+      -- 2. CATEGORIES
       CREATE TABLE IF NOT EXISTS categories (
         id SERIAL PRIMARY KEY,
         name TEXT UNIQUE NOT NULL,
@@ -32,7 +32,7 @@ export async function initDb(pool: Pool) {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- 4. SHOPS (Keeping JSONB for Map Coordinates)
+      -- 4. SHOPS
       CREATE TABLE IF NOT EXISTS shops (
         id SERIAL PRIMARY KEY,
         owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -40,7 +40,7 @@ export async function initDb(pool: Pool) {
         description TEXT,
         logo_url TEXT,
         banner_url TEXT,
-        location JSONB, -- Map coordinates {lat: x, lng: y}
+        location JSONB,
         is_approved BOOLEAN DEFAULT false,
         status TEXT DEFAULT 'available',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -56,14 +56,14 @@ export async function initDb(pool: Pool) {
         title TEXT NOT NULL,
         description TEXT,
         price DECIMAL(10,2) NOT NULL,
-        location TEXT, -- String location for display
+        location TEXT,
         is_approved BOOLEAN DEFAULT false,
         status TEXT DEFAULT 'available',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- 6. REVIEWS (Dual-Target Support)
+      -- 6. REVIEWS
       CREATE TABLE IF NOT EXISTS reviews (
         id SERIAL PRIMARY KEY,
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -78,7 +78,7 @@ export async function initDb(pool: Pool) {
         )
       );
 
-      -- 7. IMAGES & FAVORITES
+      -- 7. IMAGES, FAVORITES & REPLIES
       CREATE TABLE IF NOT EXISTS listing_images (
         id SERIAL PRIMARY KEY,
         listing_id INTEGER REFERENCES listings(id) ON DELETE CASCADE,
@@ -100,19 +100,26 @@ export async function initDb(pool: Pool) {
         shop_id INTEGER REFERENCES shops(id) ON DELETE CASCADE,
         reply_text TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW(),
-        UNIQUE(review_id) -- One reply per review
-    );
+        UNIQUE(review_id)
+      );
 
       -- 8. SEED CATEGORIES
       INSERT INTO categories (name, slug) VALUES 
-      ('Weapons', 'weapons'),
-      ('Armor', 'armor'),
-      ('Potions', 'potions'),
-      ('Tools', 'tools'),
-      ('Artifacts', 'artifacts')
+      ('Weapons', 'weapons'), ('Armor', 'armor'), ('Potions', 'potions'), 
+      ('Tools', 'tools'), ('Artifacts', 'artifacts')
       ON CONFLICT DO NOTHING;
 
-      -- 9. TRIGGERS
+      -- 9. SEED DEFAULT ADMIN USER
+      -- Uses a subquery to find the 'admin' role ID dynamically
+      INSERT INTO users (username, email, password, role_id) 
+      VALUES (
+        'admin', 
+        'admin@listit.com', 
+        '$2b$10$feY8I4RBFN2blDBwrlDar.jN9nidENCez6NEo1m0jBJqhxpWImA5O', 
+        (SELECT id FROM roles WHERE name = 'admin')
+      ) ON CONFLICT (email) DO NOTHING;
+
+      -- 10. TRIGGERS
       CREATE OR REPLACE FUNCTION update_timestamp() RETURNS TRIGGER AS $$
       BEGIN
         NEW.updated_at = CURRENT_TIMESTAMP;
@@ -128,7 +135,7 @@ export async function initDb(pool: Pool) {
       CREATE TRIGGER listings_updated BEFORE UPDATE ON listings FOR EACH ROW EXECUTE FUNCTION update_timestamp();
     `);
 
-    console.log("✅ Quest Finder DB Initialized (Shop JSONB maintained)");
+    console.log("✅ Quest Finder DB Initialized with Admin User");
   } catch (error) {
     console.error("❌ Database initialization failed:", error);
     throw error;
