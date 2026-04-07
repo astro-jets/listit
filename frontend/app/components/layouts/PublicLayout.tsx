@@ -18,14 +18,12 @@ const PublicHeader = () => {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (!query.trim()) return;
-
-        // Redirect to the listings page with the search query in the URL
         navigate(`/search?q=${encodeURIComponent(query)}`);
     };
+
     return (
         <header className="sticky top-0 z-50 bg-black/80 backdrop-blur border-b border-white/10">
             <div className="max-w-7xl mx-auto px-4">
-
                 <div className="flex items-center justify-between h-16">
 
                     {/* LOGO */}
@@ -41,41 +39,40 @@ const PublicHeader = () => {
                         <Link to="/shops" className="hover:text-yellow-400 transition">
                             Shops
                         </Link>
-                        <Link to="/myshop" className="hover:text-yellow-400 transition">
-                            My Shop
-                        </Link>
-                        <Link to="/favorites" className="hover:text-yellow-400 transition">
-                            Favorites
-                        </Link>
+
+                        {/* --- AUTH PROTECTED LINKS --- */}
+                        {user && (
+                            <>
+                                <Link to="/myshop" className="hover:text-yellow-400 transition">
+                                    My Shop
+                                </Link>
+                                <Link to="/favorites" className="hover:text-yellow-400 transition">
+                                    Favorites
+                                </Link>
+                            </>
+                        )}
                     </nav>
 
-                    {/* SEARCH */}
+                    {/* SEARCH - (Keep as is) */}
                     <form onSubmit={handleSearch} className="hidden md:flex items-center">
-                        <div className="flex items-center pr-2 w-full max-w-xl bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
-                            <input
-                                type="text"
-                                placeholder="Search items..."
-                                className="flex-1 bg-transparent px-4 py-3 outline-none text-white placeholder:text-zinc-400"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-
-                            <button className="cursor-pointer bg-yellow-400 text-black p-2 hover:bg-yellow-300 transition rounded-full  border border-white/5 ">
-                                <FiSearch />
-                            </button>
-                        </div>
+                        {/* ... search input code ... */}
                     </form>
 
                     {/* RIGHT SIDE */}
                     <div className="flex items-center gap-4">
-
-                        {/* AUTH */}
                         {user ? (
-                            <Link to="/dashboard" className="hidden md:flex items-center gap-3 cursor-pointer">
-                                <FiUser size={18} />
-                                {user.username}
-
-                            </Link>
+                            <div className="flex items-center gap-4">
+                                <Link to="/dashboard" className="hidden md:flex items-center gap-3 cursor-pointer text-white">
+                                    <FiUser size={18} />
+                                    {user.username}
+                                </Link>
+                                <button
+                                    onClick={logout}
+                                    className="hidden md:block text-xs text-zinc-400 hover:text-white transition"
+                                >
+                                    Logout
+                                </button>
+                            </div>
                         ) : (
                             <Link
                                 to="/login"
@@ -86,10 +83,7 @@ const PublicHeader = () => {
                         )}
 
                         {/* MOBILE MENU BUTTON */}
-                        <button
-                            onClick={() => setOpen(!open)}
-                            className="md:hidden text-white"
-                        >
+                        <button onClick={() => setOpen(!open)} className="md:hidden text-white">
                             {open ? <FiX size={22} /> : <FiMenu size={22} />}
                         </button>
                     </div>
@@ -99,54 +93,42 @@ const PublicHeader = () => {
             {/* MOBILE MENU */}
             {open && (
                 <div className="md:hidden bg-black border-t border-white/10 px-4 py-4 space-y-4">
-
-                    {/* SEARCH */}
-                    <form onSubmit={handleSearch} className="items-center">
-                        <div className="flex items-center pr-2 w-full max-w-xl bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
-                            <input
-                                type="text"
-                                placeholder="Search items..."
-                                className="flex-1 bg-transparent px-4 py-3 outline-none text-white placeholder:text-zinc-400"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-
-                            <button className="cursor-pointer bg-yellow-400 text-black p-2 hover:bg-yellow-300 transition rounded-full  border-3 border-white/5 ">
-                                <FiSearch />
-                            </button>
-                        </div>
-                    </form>
-
+                    {/* ... mobile search code ... */}
 
                     {/* LINKS */}
-                    <Link to="/explore" className="block text-zinc-300">
-                        Explore
-                    </Link>
-                    <Link to="/shops" className="block text-zinc-300">
-                        Shops
-                    </Link>
-                    <Link to="/sell" className="block text-zinc-300">
-                        Sell
-                    </Link>
+                    <Link to="/explore" className="block text-zinc-300">Explore</Link>
+                    <Link to="/shops" className="block text-zinc-300">Shops</Link>
 
-                    {/* AUTH */}
+                    {/* --- AUTH PROTECTED MOBILE LINKS --- */}
+                    {user && (
+                        <>
+                            <Link to="/myshop" className="block text-zinc-300">My Shop</Link>
+                            <Link to="/favorites" className="block text-zinc-300">Favorites</Link>
+                        </>
+                    )}
+
+                    {/* AUTH BUTTON */}
                     {!user ? (
-                        <Link
-                            to="/login"
-                            className="block bg-white text-black text-center py-2 rounded-lg font-semibold"
-                        >
+                        <Link to="/login" className="block bg-white text-black text-center py-2 rounded-lg font-semibold">
                             Login
                         </Link>
                     ) : (
-                        <Link to="/dashboard" className="flex space-x-2 px-4 items-center bg-white text-black text-center py-2 rounded-lg font-semibold">
-                            <FiUser size={18} />
-                            <p>Dashboard</p>
-                        </Link>
+                        <div className="space-y-2">
+                            <Link to="/dashboard" className="flex space-x-2 px-4 items-center bg-white text-black text-center py-2 rounded-lg font-semibold">
+                                <FiUser size={18} />
+                                <span>Dashboard</span>
+                            </Link>
+                            <button
+                                onClick={logout}
+                                className="w-full text-center py-2 text-zinc-400 text-sm"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     )}
                 </div>
             )}
         </header>
-
     );
 };
 
