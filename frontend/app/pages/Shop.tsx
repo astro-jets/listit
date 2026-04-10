@@ -1,12 +1,12 @@
 import ListingCard from "~/components/listings/ListingCard";
-import { FiStar, FiMapPin, FiAlertCircle, FiLoader, FiCheckCircle, FiMessageSquare, FiSend, FiTrash2 } from "react-icons/fi";
+import { FiStar, FiMapPin, FiAlertCircle, FiLoader, FiCheckCircle, FiMessageSquare, FiSend, FiTrash2, FiClock } from "react-icons/fi";
 import PublicHeader from "~/components/layouts/PublicLayout";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { getShopListings } from "~/services/listing.service";
 import { getShopById } from "~/services/shop.service";
 import { ReviewApiService } from "~/services/reviews.service";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
 import { FaDirections } from "react-icons/fa";
 import { useAuth } from "~/context/AuthContext";
@@ -25,7 +25,6 @@ const ShopProfile = () => {
     const [reviews, setReviews] = useState<any[]>([]);
     const [comment, setComment] = useState("");
     const [rating, setRating] = useState(5);
-
     const [hover, setHover] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,22 +52,23 @@ const ShopProfile = () => {
         fetchShopData();
     }, [id]);
 
-
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-yellow-400 font-mono">
-                <FiLoader className="animate-spin mb-4" size={48} />
-                <p className="animate-pulse tracking-widest text-sm">SYNCHRONIZING MERCHANT DATA...</p>
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center font-black italic">
+                <div className="w-16 h-16 border-[6px] border-black border-t-yellow-400 rounded-full animate-spin mb-6" />
+                <p className="tracking-tighter text-2xl uppercase">Synchronizing Merchant Data...</p>
             </div>
         );
     }
 
     if (error || !shop) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-red-500 font-mono p-4">
-                <FiAlertCircle size={64} className="mb-4" />
-                <h1 className="text-xl font-black uppercase mb-2">Error: 404</h1>
-                <p className="text-zinc-500">{error}</p>
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+                <div className="bg-red-500 border-[4px] border-black p-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-center">
+                    <FiAlertCircle size={64} className="mx-auto mb-4 text-white" />
+                    <h1 className="text-4xl font-black uppercase text-white mb-2">Error: 404</h1>
+                    <p className="text-black font-bold uppercase">{error}</p>
+                </div>
             </div>
         );
     }
@@ -79,55 +79,46 @@ const ShopProfile = () => {
         e.preventDefault();
         if (rating === 0) return alert("Please select a rating.");
 
-        setIsLoading(true);
+        setIsSubmitting(true);
         try {
             await ReviewApiService.postShopReview({
                 shop_id: Number(shop.id),
                 rating,
                 comment
             });
-            // Reset form and refresh reviews
-            setRating(0);
+            setRating(5);
             setComment("");
+            // Refresh reviews logic here
         } catch (err) {
             alert("Unauthorized: Please log in to leave a review.");
         } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleDeleteReview = async (reviewId: string) => {
-        if (!window.confirm("Delete this review?")) return;
-        try {
-            await ReviewApiService.deleteReview(reviewId);
-            setReviews(reviews.filter(r => r.id !== reviewId));
-        } catch (err) {
-            alert("Failed to delete review.");
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="bg-black text-white min-h-screen selection:bg-yellow-400/30">
+        <div className="bg-[#F8F8F8] text-black min-h-screen selection:bg-yellow-400 font-sans pb-20">
             <PublicHeader />
 
-            {/* HERO BANNER */}
-            <div className="relative h-75 w-full overflow-hidden">
+            {/* HERO BANNER - Stark Contrast */}
+            <div className="relative h-80 w-full border-b-[4px] border-black bg-zinc-200 overflow-hidden">
                 <img
                     src={shop.logo_url || "/placeholder-banner.png"}
-                    className="w-full h-full object-cover object-bottom opacity-60"
+                    className="w-full h-full object-cover grayscale opacity-40"
+                    alt="Banner"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-white via-transparent to-transparent" />
             </div>
 
             {/* SHOP IDENTITY SECTION */}
-            <div className="max-w-7xl mx-auto px-6 relative z-20 -mt-24">
-                <div className="flex flex-col md:flex-row items-end gap-8 pb-8 border-b border-white/5">
+            <div className="max-w-7xl mx-auto px-6 relative z-20 -mt-32">
+                <div className="flex flex-col md:flex-row items-start gap-8">
 
-                    {/* MAXIMIZED LOGO */}
+                    {/* BRUTALIST LOGO */}
                     <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="w-40 h-40 md:w-48 md:h-48 bg-zinc-900 rounded-3xl overflow-hidden border-4 border-black shadow-2xl shadow-yellow-400/10 shrink-0"
+                        initial={{ x: -50, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        className="w-48 h-48 md:w-56 md:h-56 bg-white border-[4px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden shrink-0"
                     >
                         <img
                             src={shop.logo_url || "/img.png"}
@@ -136,88 +127,86 @@ const ShopProfile = () => {
                         />
                     </motion.div>
 
-                    {/* SHOP DESCRIPTION & STATS */}
-                    <div className="flex-1 space-y-4 mb-2">
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tighter">{shop.name}</h1>
-                            <FiCheckCircle className="text-blue-400 text-2xl" title="Verified Merchant" />
+                    {/* DESCRIPTION BOX */}
+                    <div className="flex-1 bg-white border-[4px] border-black p-8 shadow-[12px_12px_0px_0px_rgba(250,204,21,1)]">
+                        <div className="flex flex-wrap items-center gap-4 mb-4">
+                            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter italic italic-bold leading-none">
+                                {shop.name}
+                            </h1>
+                            <FiCheckCircle className="text-blue-500" size={30} strokeWidth={3} />
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-6 text-sm font-medium">
-                            <div className="flex items-center gap-2 px-3 py-1 bg-yellow-400/10 text-yellow-400 rounded-full border border-yellow-400/20">
-                                <FiStar fill="currentColor" /> {shop.rating || "5.0"} (120+ Reviews)
+                        <div className="flex flex-wrap items-center gap-6 text-xs font-black uppercase mb-6">
+                            <div className="bg-yellow-400 border-[2px] border-black px-3 py-1 flex items-center gap-2">
+                                <FiStar fill="black" /> {shop.rating || "5.0"} [120+ FEEDBACKS]
                             </div>
-                            <div className="flex items-center gap-2 text-zinc-400">
+                            <div className="flex items-center gap-2 border-[2px] border-black px-3 py-1 bg-white">
                                 <FiMapPin /> {typeof shop.location === 'string' ? shop.location : "Blantyre, Malawi"}
                             </div>
-                            <div className="text-zinc-500">
-                                Joined March 2026
+                            <div className="flex items-center gap-2 text-zinc-500">
+                                <FiClock /> EST. MARCH 2026
                             </div>
                         </div>
 
-                        <p className="text-zinc-400 max-w-2xl text-lg leading-relaxed">{shop.description}</p>
-                    </div>
+                        <p className="text-xl font-bold leading-tight text-zinc-800 uppercase max-w-3xl">
+                            {shop.description}
+                        </p>
 
-                    {/* ACTION BUTTONS */}
-                    <div className="flex flex-col gap-3 w-full md:w-auto">
-                        <button
-                            className="w-full md:w-48 bg-yellow-400 text-black px-6 py-4 rounded-xl font-bold hover:bg-yellow-300 transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-400/10"
-                            onClick={() => setShowMap(!showMap)}
-                        >
-                            <FaDirections /> {!showMap ? "Locate Shop" : "Hide Map"}
-                        </button>
+                        <div className="mt-8">
+                            <button
+                                className="inline-flex items-center gap-3 bg-black text-white px-8 py-4 font-black uppercase italic border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] hover:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+                                onClick={() => setShowMap(!showMap)}
+                            >
+                                <FaDirections /> {!showMap ? "Locate Establishment" : "Collapse Intel"}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* INTERACTIVE MAP DROP */}
-                <div className="mt-8 transition-all duration-500 overflow-hidden">
+                {/* INTERACTIVE MAP */}
+                <AnimatePresence>
                     {showMap && (
                         <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            className="rounded-3xl border border-white/5 overflow-hidden shadow-2xl"
+                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                            animate={{ height: "auto", opacity: 1, marginTop: 40 }}
+                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                            className="border-[4px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden bg-white"
                         >
-                            <LocationViewer coords={coords} shop={shop} />
+                            <div className="h-[400px]">
+                                <LocationViewer coords={coords} shop={shop} />
+                            </div>
                         </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
 
                 {/* MAIN CONTENT GRID */}
-                <div className="grid lg:grid-cols-3 gap-16 py-16">
+                <div className="grid lg:grid-cols-3 gap-16 mt-20">
 
-                    {/* LEFT: PRODUCTS (2 Columns) */}
+                    {/* LEFT: PRODUCTS */}
                     <div className="lg:col-span-2 space-y-8">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-black tracking-tight">Available Inventory</h2>
-                            <span className="text-zinc-500 text-sm font-mono">{products.length} ITEMS FOUND</span>
+                        <div className="flex items-end justify-between border-b-[6px] border-black pb-4">
+                            <h2 className="text-4xl font-black uppercase italic tracking-tighter">Current Inventory</h2>
+                            <span className="bg-black text-white px-3 py-1 text-xs font-black">{products.length} UNITS</span>
                         </div>
 
-                        <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="grid sm:grid-cols-2 gap-8">
                             {products.map((item, i) => (
-                                <motion.div
-                                    key={item.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.1 }}
-                                    className="bg-zinc-900/40 rounded-2xl border border-white/5 p-2 hover:border-yellow-400/20 transition-all group"
-                                >
+                                <div key={item.id} className="h-full">
                                     <ListingCard item={item} />
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* RIGHT: REVIEWS & FEEDBACK */}
-                    <div className="space-y-12">
-                        <div className="space-y-6">
-                            <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                                <FiMessageSquare className="text-yellow-400" /> Merchant Feedback
+                    {/* RIGHT: REVIEWS */}
+                    <div className="space-y-10">
+                        <div className="border-[4px] border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                            <h2 className="text-2xl font-black uppercase italic mb-6 flex items-center gap-3">
+                                <FiMessageSquare size={28} className="text-yellow-400" /> Submit Intel
                             </h2>
 
-                            {/* REVIEW FORM */}
-
-                            <form onSubmit={handleSubmitReview} className="bg-zinc-900/30 p-6 rounded-3xl border border-white/5 space-y-4">
-                                <div className="flex gap-1">
+                            <form onSubmit={handleSubmitReview} className="space-y-6">
+                                <div className="flex gap-2 bg-zinc-100 p-3 border-[2px] border-black w-fit">
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <button
                                             key={star}
@@ -225,63 +214,64 @@ const ShopProfile = () => {
                                             onClick={() => setRating(star)}
                                             onMouseEnter={() => setHover(star)}
                                             onMouseLeave={() => setHover(0)}
-                                            className="text-2xl transition-all"
+                                            className="text-2xl transition-transform active:scale-90"
                                         >
-                                            <FiStar fill={(hover || rating) >= star ? "#facc15" : "transparent"}
-                                                className={(hover || rating) >= star ? "text-yellow-400" : "text-zinc-800"} />
+                                            <FiStar
+                                                fill={(hover || rating) >= star ? "black" : "transparent"}
+                                                className="text-black"
+                                            />
                                         </button>
                                     ))}
                                 </div>
                                 <textarea
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
-                                    placeholder="Write your review..."
-                                    className="w-full bg-black border border-white/5 rounded-2xl p-4 text-sm focus:border-yellow-400 outline-none h-32 resize-none transition-all"
+                                    placeholder="TYPE REPORT HERE..."
+                                    className="w-full bg-white border-[3px] border-black p-4 font-bold uppercase text-sm focus:bg-yellow-50 outline-none h-32 resize-none transition-all placeholder:text-zinc-300"
                                 />
                                 <button
                                     disabled={isSubmitting}
                                     type="submit"
-                                    className="w-full bg-white text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-yellow-400 transition-colors disabled:opacity-50"
+                                    className="w-full bg-yellow-400 text-black border-[3px] border-black font-black py-4 uppercase italic shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none active:translate-x-1 active:translate-y-1 transition-all disabled:opacity-50"
                                 >
-                                    {isSubmitting ? "UPLOADING..." : <><FiSend /> POST REVIEW</>}
+                                    {isSubmitting ? "TRANSMITTING..." : "POST FEEDBACK"}
                                 </button>
                             </form>
+                        </div>
 
-                            {/* MINI REVIEW FEED */}
-                            <div className="lg:col-span-2 space-y-10">
-                                {reviews.length > 0 ? reviews.map((r) => (
-                                    <div key={r.id} className="group space-y-3">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-3">
-                                                <img src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.username}`} className="w-10 h-10 rounded-full border border-white/10" />
-                                                <div>
-                                                    <h4 className="font-bold text-sm">{r.username}</h4>
-                                                    <p className="text-[10px] text-zinc-600 font-mono uppercase">
-                                                        {new Date(r.created_at).toLocaleDateString()}
-                                                    </p>
-                                                </div>
+                        {/* FEEDBACK FEED */}
+                        <div className="space-y-6">
+                            <h3 className="text-xl font-black uppercase tracking-widest border-l-[10px] border-black pl-4">Verified Reports</h3>
+                            {reviews.length > 0 ? reviews.map((r) => (
+                                <div key={r.id} className="bg-white border-[3px] border-black p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 border-[2px] border-black overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                                                <img src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.username}`} alt="User" />
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex text-yellow-400 text-xs">
-                                                    {[...Array(r.rating)].map((_, i) => <FiStar key={i} fill="currentColor" />)}
-                                                </div>
-                                                {r.user_id === user?.id && (
-                                                    <button onClick={() => handleDeleteReview(r.id)} className="text-zinc-700 hover:text-red-500 transition-colors">
-                                                        <FiTrash2 size={16} />
-                                                    </button>
-                                                )}
+                                            <div>
+                                                <h4 className="font-black text-xs uppercase underline">{r.username}</h4>
+                                                <p className="text-[10px] font-bold text-zinc-500 uppercase">{new Date(r.created_at).toLocaleDateString()}</p>
                                             </div>
                                         </div>
-                                        <p className="text-zinc-400 text-sm leading-relaxed border-l-2 border-yellow-400/20 pl-4">
-                                            {r.comment}
-                                        </p>
+                                        <div className="flex text-black text-[10px] font-black bg-yellow-400 px-2 border-[1.5px] border-black">
+                                            {r.rating}/5
+                                        </div>
                                     </div>
-                                )) : (
-                                    <div className="h-full flex items-center justify-center text-zinc-700 font-mono italic">
-                                        NO REVIEWS RECORDED IN THIS SECTOR.
-                                    </div>
-                                )}
-                            </div>
+                                    <p className="font-bold text-sm uppercase leading-tight text-zinc-700">
+                                        "{r.comment}"
+                                    </p>
+                                    {r.user_id === user?.id && (
+                                        <button className="mt-4 text-red-600 font-black text-[10px] uppercase hover:underline">
+                                            [ Redact Review ]
+                                        </button>
+                                    )}
+                                </div>
+                            )) : (
+                                <div className="border-[3px] border-dashed border-black p-10 text-center font-black uppercase text-zinc-400">
+                                    No data recorded in this sector.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
