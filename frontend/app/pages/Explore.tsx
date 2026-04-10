@@ -22,7 +22,7 @@ const Explore = () => {
             setLoading(true);
             try {
                 const [listingsRes, categoriesRes] = await Promise.all([
-                    getAllListings(1), // Assuming page 1 for now
+                    getAllListings(1),
                     getCategories()
                 ]);
                 setAllListings(listingsRes.data.data);
@@ -46,25 +46,26 @@ const Explore = () => {
     }, [selectedCatId, allListings]);
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white">
+        <div className="min-h-screen bg-white text-black selection:bg-yellow-400">
             <PublicHeader />
 
-            <main className="max-w-7xl mx-auto px-6 py-4 space-y-12">
-                {/* HERO SECTION */}
+            <main className="max-w-7xl mx-auto px-6 py-12 space-y-16">
+                {/* HERO SECTION - Neo-Brutalist Banner */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-4"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    className="border-l-[12px] border-black pl-8 py-4 bg-yellow-400 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
                 >
-                    <h1 className="text-5xl font-black uppercase italic tracking-tighter">
-                        Find your <span className="text-yellow-400">Gear</span>
+                    <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">
+                        Explore <br />
+                        <span className="bg-white px-4 border-[4px] border-black">The Loot</span>
                     </h1>
                 </motion.div>
 
-                {/* CATEGORY NAV */}
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide sticky top-20 z-10 bg-[#0a0a0a]/80 backdrop-blur-md py-2">
+                {/* CATEGORY NAV - Sharp & Blocky */}
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide sticky top-20 z-10 bg-white/90 backdrop-blur-sm py-6 border-b-[4px] border-black">
                     <CategoryButton
-                        label="All Loot"
+                        label="ALL GEAR"
                         active={selectedCatId === null}
                         onClick={() => setSelectedCatId(null)}
                     />
@@ -79,7 +80,7 @@ const Explore = () => {
                 </div>
 
                 {/* LISTING GRID */}
-                <motion.section layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <motion.section layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
                     <AnimatePresence mode="popLayout">
                         {filteredListings.map((item: any) => (
                             <motion.div
@@ -87,8 +88,8 @@ const Explore = () => {
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="hover:-translate-y-2 transition-transform"
                             >
                                 <ListingCard item={item} />
                             </motion.div>
@@ -96,42 +97,45 @@ const Explore = () => {
                     </AnimatePresence>
                 </motion.section>
 
-                {/* EMPTY STATE */}
+                {/* EMPTY STATE - High Contrast Block */}
                 {!loading && filteredListings.length === 0 && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="h-96 flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 rounded-3xl"
+                        className="h-96 flex flex-col items-center justify-center border-[4px] border-black bg-zinc-50 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"
                     >
-                        <span className="text-4xl mb-4">🌑</span>
-                        <h3 className="font-black uppercase text-zinc-500">The vaults are empty here</h3>
-                        <button onClick={() => setSelectedCatId(null)} className="mt-4 text-yellow-400 font-bold hover:underline">
-                            RETURN TO ALL
+                        <span className="text-6xl mb-6">🚫</span>
+                        <h3 className="text-2xl font-black uppercase italic">Out of Stock</h3>
+                        <p className="font-bold text-zinc-500 mt-2 uppercase">No items found in this sector</p>
+                        <button
+                            onClick={() => setSelectedCatId(null)}
+                            className="mt-8 bg-black text-yellow-400 px-8 py-3 font-black uppercase border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(250,204,21,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+                        >
+                            Reset Scanners
                         </button>
                     </motion.div>
                 )}
             </main>
+
+            <footer className="bg-black text-white py-12 mt-20 border-t-[8px] border-yellow-400 text-center">
+                <p className="font-black uppercase tracking-[0.2em] italic">
+                    Studio X Marketplace — Est. 2026
+                </p>
+            </footer>
         </div>
     );
 };
 
-// Sub-component for clean code & Framer Layout Animations
+// Nebutalist Category Button
 const CategoryButton = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
     <button
         onClick={onClick}
-        className={`relative px-8 py-3 font-black uppercase text-xs tracking-widest transition-colors ${active ? 'text-black' : 'text-zinc-500 hover:text-white'}`}
+        className={`relative px-6 py-3 font-black uppercase text-sm tracking-tight border-[3px] border-black transition-all ${active
+            ? 'bg-yellow-400 text-black translate-x-1 translate-y-1 shadow-none'
+            : 'bg-white text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-50 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+            }`}
     >
-        <span className="relative z-10">{label}</span>
-        {active && (
-            <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 bg-yellow-400 rounded-full"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-            />
-        )}
-        {!active && (
-            <div className="absolute inset-0 border border-zinc-800 rounded-full" />
-        )}
+        {label}
     </button>
 );
 
