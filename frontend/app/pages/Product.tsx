@@ -278,7 +278,7 @@ const ProductDetail = () => {
             </div>
 
             {/* STARK FOOTER SECTION */}
-            <footer className="bg-black text-white mt-24 py-16 border-t-[10px] border-yellow-400">
+            <footer className="bg-black text-white mt-24 py-16 border-t-10 border-yellow-400">
                 <div className="max-w-7xl mx-auto px-6 text-center">
                     <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-4">Studio X Hub</h2>
                     <p className="uppercase font-bold text-zinc-500 tracking-[0.3em]">Authorized Trading Floor</p>
