@@ -4,6 +4,7 @@ export async function initDb(pool: Pool) {
   try {
     await pool.query(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+      CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- Useful for fuzzy searching names
 
       -- 1. ROLES
       CREATE TABLE IF NOT EXISTS roles (
@@ -19,20 +20,23 @@ export async function initDb(pool: Pool) {
         slug TEXT UNIQUE NOT NULL
       );
 
-      -- 3. USERS
+      -- 3. USERS (Added phone and verification status)
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         username TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
+        phone_number TEXT UNIQUE NOT NULL, -- Mandatory for verification
         password TEXT NOT NULL,
         role_id INTEGER REFERENCES roles(id),
         avatar_url TEXT,
         bio TEXT,
+        is_verified BOOLEAN DEFAULT false, -- For the rigorous verification process
+        verification_date TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- 4. SHOPS
+      -- 4. SHOPS (Approval is critical here)
       CREATE TABLE IF NOT EXISTS shops (
         id SERIAL PRIMARY KEY,
         owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -40,14 +44,15 @@ export async function initDb(pool: Pool) {
         description TEXT,
         logo_url TEXT,
         banner_url TEXT,
-        location JSONB,
-        is_approved BOOLEAN DEFAULT false,
-        status TEXT DEFAULT 'available',
+        location JSONB, -- Coordinates
+        address_text TEXT, -- Readable address for search
+        is_approved BOOLEAN DEFAULT false, -- When true, all listings become visible
+        status TEXT DEFAULT 'active', -- 'active', 'suspended', 'closed'
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- 5. LISTINGS
+      -- 5. LISTINGS (Removed is_approved)
       CREATE TABLE IF NOT EXISTS listings (
         id SERIAL PRIMARY KEY,
         shop_id INTEGER REFERENCES shops(id) ON DELETE CASCADE,
@@ -56,9 +61,8 @@ export async function initDb(pool: Pool) {
         title TEXT NOT NULL,
         description TEXT,
         price DECIMAL(10,2) NOT NULL,
-        location TEXT,
-        is_approved BOOLEAN DEFAULT false,
-        status TEXT DEFAULT 'available',
+        stock_quantity INTEGER DEFAULT 1,
+        status TEXT DEFAULT 'available', -- 'available', 'sold_out', 'archived'
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -103,7 +107,11 @@ export async function initDb(pool: Pool) {
         UNIQUE(review_id)
       );
 
-      -- 8. SEED CATEGORIES
+      -- 8. SEARCH OPTIMIZATION (GIN Indexes for the hybrid search)
+      CREATE INDEX IF NOT EXISTS idx_listings_title_trgm ON listings USING gin (title gin_trgm_ops);
+      CREATE INDEX IF NOT EXISTS idx_shops_name_trgm ON shops USING gin (name gin_trgm_ops);
+
+      -- 9. SEED CATEGORIES
       INSERT INTO categories (name, slug) VALUES 
       ('Clothing', 'clothing'),
       ('Electronics', 'electronics'),
@@ -115,17 +123,18 @@ export async function initDb(pool: Pool) {
       ('Automotive', 'automotive')
       ON CONFLICT DO NOTHING;
 
-      -- 9. SEED DEFAULT ADMIN USER
-      -- Uses a subquery to find the 'admin' role ID dynamically
-      INSERT INTO users (username, email, password, role_id) 
+      -- 10. SEED DEFAULT ADMIN USER
+      INSERT INTO users (username, email, phone_number, password, role_id, is_verified) 
       VALUES (
         'admin', 
         'admin@listit.com', 
+        '+0000000000',
         '$2b$10$feY8I4RBFN2blDBwrlDar.jN9nidENCez6NEo1m0jBJqhxpWImA5O', 
-        (SELECT id FROM roles WHERE name = 'admin')
+        (SELECT id FROM roles WHERE name = 'admin'),
+        true
       ) ON CONFLICT (email) DO NOTHING;
 
-      -- 10. TRIGGERS
+      -- 11. TRIGGERS
       CREATE OR REPLACE FUNCTION update_timestamp() RETURNS TRIGGER AS $$
       BEGIN
         NEW.updated_at = CURRENT_TIMESTAMP;
@@ -141,7 +150,9 @@ export async function initDb(pool: Pool) {
       CREATE TRIGGER listings_updated BEFORE UPDATE ON listings FOR EACH ROW EXECUTE FUNCTION update_timestamp();
     `);
 
-    console.log("✅ Quest Finder DB Initialized with Admin User");
+    console.log(
+      "✅ Database initialized with Phone Verification & Unified Approval Logic",
+    );
   } catch (error) {
     console.error("❌ Database initialization failed:", error);
     throw error;

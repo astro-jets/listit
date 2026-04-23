@@ -4,6 +4,8 @@ export interface Shop {
   name: string;
   description: string;
   logo_url: string | null;
+  banner_url: string | null;
+  address_text: string | null;
   location:
     | {
         lat: number;

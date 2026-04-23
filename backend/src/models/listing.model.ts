@@ -1,29 +1,25 @@
 import { pool } from "../db/db";
 
 export const listingModel = {
-  // CREATE: Now includes category_id and handles images in a transaction
+  // CREATE
   async createListing(data: any) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-
       const listingResult = await client.query(
-        `INSERT INTO listings (shop_id, seller_id, category_id, title, description, price, location)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING *`,
+        `INSERT INTO listings (shop_id, seller_id, category_id, title, description, price)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *, FALSE::boolean as is_favorited`, // New listings are never favorited yet
         [
           data.shop_id,
           data.seller_id,
-          data.category_id, // New: Foreign Key to categories table
+          data.category_id,
           data.title,
           data.description,
           data.price,
-          data.location || null, // String location
         ],
       );
-
       const listing = listingResult.rows[0];
-
       if (data.images && data.images.length > 0) {
         for (const url of data.images) {
           await client.query(
@@ -32,7 +28,6 @@ export const listingModel = {
           );
         }
       }
-
       await client.query("COMMIT");
       return listing;
     } catch (err) {
@@ -43,45 +38,72 @@ export const listingModel = {
     }
   },
 
-  async getShopListings(shopId: string | number) {
+  // GET: Fetch shop listings with favorite check
+  async getShopListings(shopId: string | number, userId?: string | null) {
     const result = await pool.query(
-      `SELECT l.*, c.name as category_name,
-       COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
-       FROM listings l
-       LEFT JOIN categories c ON l.category_id = c.id
-       LEFT JOIN listing_images li ON l.id = li.listing_id
-       WHERE l.shop_id = $1
-       GROUP BY l.id, c.name`,
-      [shopId],
+      `SELECT 
+        l.*, 
+        c.name as category_name,
+        -- Use EXISTS for a clean, consistent boolean check
+        EXISTS (
+          SELECT 1 FROM favorites f 
+          WHERE f.listing_id = l.id 
+          AND f.user_id = $2::uuid
+        )::boolean as is_favorited,
+        -- Aggregating images into a clean JSON array
+        COALESCE(
+          (SELECT json_agg(li.image_url) 
+           FROM listing_images li 
+           WHERE li.listing_id = l.id), 
+          '[]'
+        ) as images
+     FROM listings l
+     LEFT JOIN categories c ON l.category_id = c.id
+     WHERE l.shop_id = $1
+     GROUP BY l.id, c.name
+     ORDER BY l.created_at DESC`,
+      [shopId, userId || null],
     );
     return result.rows;
   },
 
-  async getListingById(id: string | number) {
+  // GET: Single listing with favorite check
+  async getListingById(id: string | number, userId?: string | null) {
     const result = await pool.query(
-      `
-      SELECT 
-        l.*, 
-        c.name as category_name,
-        s.name as shop_name, 
-        s.logo_url as shop_logo,
-        s.description as shop_description,
-        COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
-      FROM listings l
-      JOIN shops s ON l.shop_id = s.id
-      LEFT JOIN categories c ON l.category_id = c.id
-      LEFT JOIN listing_images li ON l.id = li.listing_id
-      WHERE l.id = $1
-      GROUP BY l.id, s.id, c.name
-      `,
-      [id],
+      `SELECT 
+      l.*, 
+      c.name as category_name,
+      s.name as shop_name, 
+      s.logo_url as shop_logo,
+      s.description as shop_description,
+      s.is_approved as shop_is_approved,
+      -- Check if THIS specific user has favorited THIS specific listing
+      EXISTS (
+        SELECT 1 FROM favorites f 
+        WHERE f.listing_id = l.id 
+        AND f.user_id = $2::uuid
+      )::boolean as is_favorited,
+      -- Aggregate images into a single JSON array without duplicates
+      COALESCE(
+        (SELECT json_agg(li.image_url) 
+         FROM listing_images li 
+         WHERE li.listing_id = l.id), 
+        '[]'
+      ) as images
+    FROM listings l
+    JOIN shops s ON l.shop_id = s.id
+    LEFT JOIN categories c ON l.category_id = c.id
+    WHERE l.id = $1
+    GROUP BY l.id, s.id, c.name`,
+      [id, userId || null],
     );
+
     return result.rows[0];
   },
 
+  // UPDATE
   async updateListing(id: number, data: any) {
     const { title, description, price, location, status, category_id } = data;
-
     const result = await pool.query(
       `UPDATE listings 
        SET title = COALESCE($1, title), 
@@ -92,12 +114,12 @@ export const listingModel = {
            category_id = COALESCE($6, category_id),
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $7 
-       RETURNING *`,
+       RETURNING *, FALSE::boolean as is_favorited`,
       [
         title || null,
         description || null,
         price || null,
-        location || null, // Treated as string for listings
+        location || null,
         status || null,
         category_id || null,
         id,
@@ -106,38 +128,31 @@ export const listingModel = {
     return result.rows[0];
   },
 
-  async getFeaturedListings(limit: number, offset: number, userId?: string) {
+  // GET: Featured
+  async getFeaturedListings(
+    limit: number,
+    offset: number,
+    userId?: string | null,
+  ) {
     const listings = await pool.query(
       `SELECT 
-        l.id,
-        l.title,
-        l.price,
-        l.location,
-        c.name as category_name,
-        l.created_at,
-        s.id as shop_id,
-        s.name as shop_name,
-        (CASE WHEN f.user_id IS NOT NULL THEN TRUE ELSE FALSE END) as is_favorited,
-        (
-          SELECT image_url 
-          FROM listing_images 
-          WHERE listing_id = l.id 
-          LIMIT 1
-        ) as image
+        l.id, l.title, l.price, c.name as category_name, l.created_at,
+        s.id as shop_id, s.name as shop_name,
+        (CASE WHEN $3::uuid IS NOT NULL AND f.user_id = $3::uuid THEN TRUE ELSE FALSE END)::boolean as is_favorited,
+        (SELECT image_url FROM listing_images WHERE listing_id = l.id LIMIT 1) as image
       FROM listings l
       INNER JOIN shops s ON l.shop_id = s.id
       LEFT JOIN categories c ON l.category_id = c.id
-      LEFT JOIN favorites f ON l.id = f.listing_id AND f.user_id = $3
-      WHERE l.is_approved = true
-        AND l.status = 'available'
+      LEFT JOIN favorites f ON l.id = f.listing_id AND f.user_id = $3::uuid
+      WHERE s.is_approved = true AND l.status = 'available'
       ORDER BY l.created_at DESC
-      LIMIT $1 OFFSET $2;
-    `,
+      LIMIT $1 OFFSET $2;`,
       [limit, offset, userId || null],
     );
 
     const countResult = await pool.query(
-      `SELECT COUNT(*) FROM listings WHERE is_approved = true AND status = 'available';`,
+      `SELECT COUNT(*) FROM listings l JOIN shops s ON l.shop_id = s.id
+       WHERE s.is_approved = true AND l.status = 'available';`,
     );
 
     return {
@@ -146,26 +161,41 @@ export const listingModel = {
     };
   },
 
-  async searchListings(searchTerm: string) {
+  // SEARCH
+  async searchListings(searchTerm: string, userId?: string | null) {
     const query = `
-      SELECT 
-        l.*, 
-        s.name as shop_name,
-        c.name as category_name,
-        (SELECT image_url FROM listing_images WHERE listing_id = l.id LIMIT 1) as image
+    SELECT l.*, s.name as shop_name, s.logo_url as shop_logo,
+      (CASE WHEN $2::uuid IS NOT NULL AND f.user_id = $2::uuid THEN TRUE ELSE FALSE END)::boolean as is_favorited,
+      (SELECT image_url FROM listing_images WHERE listing_id = l.id LIMIT 1) as image
+    FROM listings l
+    JOIN shops s ON l.shop_id = s.id
+    LEFT JOIN favorites f ON l.id = f.listing_id AND f.user_id = $2::uuid
+    WHERE (l.title ILIKE $1 OR l.description ILIKE $1)
+      AND s.is_approved = true AND l.status = 'available'
+    ORDER BY l.created_at DESC`;
+    const { rows } = await pool.query(query, [
+      `%${searchTerm}%`,
+      userId || null,
+    ]);
+    return rows;
+  },
+
+  // GET: User's own listings
+  async getListingsByUser(userId: string) {
+    const result = await pool.query(
+      `SELECT l.*, s.name as shop_name, s.logo_url as shop_logo,
+        (CASE WHEN f.user_id IS NOT NULL THEN TRUE ELSE FALSE END)::boolean as is_favorited,
+        COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
       FROM listings l
       JOIN shops s ON l.shop_id = s.id
-      LEFT JOIN categories c ON l.category_id = c.id
-      WHERE 
-        (l.title ILIKE $1 OR l.description ILIKE $1 OR c.name ILIKE $1)
-        AND l.is_approved = true
-        AND l.status = 'available'
-      ORDER BY l.created_at DESC
-    `;
-
-    const values = [`%${searchTerm}%`];
-    const { rows } = await pool.query(query, values);
-    return rows;
+      LEFT JOIN listing_images li ON l.id = li.listing_id
+      LEFT JOIN favorites f ON l.id = f.listing_id AND f.user_id = $1
+      WHERE s.owner_id = $1
+      GROUP BY l.id, s.id, f.user_id
+      ORDER BY l.created_at DESC`,
+      [userId],
+    );
+    return result.rows;
   },
 
   async deleteListing(id: number): Promise<boolean> {
@@ -175,27 +205,7 @@ export const listingModel = {
     );
     return (result.rowCount ?? 0) > 0;
   },
-  async getListingsByUser(userId: string) {
-    const result = await pool.query(
-      `
-      SELECT 
-        l.*, 
-        s.name as shop_name, 
-        s.logo_url as shop_logo,
-        COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
-      FROM listings l
-      JOIN shops s ON l.shop_id = s.id
-      LEFT JOIN listing_images li ON l.id = li.listing_id
-      WHERE s.owner_id = $1
-      GROUP BY l.id, s.id
-      ORDER BY l.created_at DESC
-      `,
-      [userId],
-    );
-    return result.rows;
-  },
 
-  // Helper to get images before deletion
   async getListingImages(listingId: number): Promise<string[]> {
     const result = await pool.query(
       "SELECT image_url FROM listing_images WHERE listing_id = $1",

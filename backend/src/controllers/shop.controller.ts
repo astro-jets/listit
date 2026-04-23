@@ -17,28 +17,32 @@ declare module "fastify" {
 export const shopController = {
   async createShop(request: FastifyRequest, reply: FastifyReply) {
     try {
-      // 1. Process multipart data (logo + fields)
-      // Max 1 image for the shop logo
-      const { fields, imageUrls } = await processMultipartImages(request, 1);
+      // 1. Process multipart data (logo + banner + fields)
+      // Max 2 images expected: [0] is logo, [1] is banner
+      const { fields, imageUrls } = await processMultipartImages(request, 2);
 
       // 2. Extract and Validate
-      const { name, bio, location } = fields;
+      const { name, bio, location, address_text } = fields;
       const logo_url = imageUrls.length > 0 ? imageUrls[0] : null;
+      const banner_url = imageUrls.length > 1 ? imageUrls[1] : null;
 
-      if (!name || !location) {
-        return reply
-          .code(400)
-          .send({ error: "Shop name and location are required." });
+      if (!name || !location || !address_text) {
+        return reply.code(400).send({
+          error:
+            "Shop name, location coordinates, and address text are required.",
+        });
       }
 
       // 3. Prepare data for Model
       const shopData = {
         name,
-        bio,
+        bio, // Maps to description in DB
+        address_text,
         location:
           typeof location === "string" ? JSON.parse(location) : location,
         logo_url,
-        owner_id: (request as any).user.id, // Populated by authenticate hook
+        banner_url,
+        owner_id: (request as any).user.id,
       };
 
       // 4. Save to database

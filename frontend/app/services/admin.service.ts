@@ -156,3 +156,11 @@ export const getGrowthMetrics = async () => {
   // Extract the data array from the standard response wrapper
   return res.data?.data || [];
 };
+
+export const getShopDetailsForAdmin = async (shopId: number) => {
+  const res = await client.get(
+    `/admin/shops/${shopId}/verify`,
+    getAuthHeader(),
+  );
+  return res.data;
+};

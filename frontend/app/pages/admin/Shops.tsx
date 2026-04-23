@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import { FiCheckCircle, FiXCircle, FiEye, FiSearch, FiLoader } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminLayout from '~/components/layouts/AdminLayout';
@@ -140,9 +141,9 @@ const AdminShops = () => {
                                             >
                                                 <FiXCircle className="text-xl group-hover:scale-110 transition-transform" />
                                             </button>
-                                            <button className="p-3 border-4 border-black bg-cyan-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all group">
+                                            <Link to={`/admin/shops/${shop.id}/verify`} className="p-3 border-4 border-black bg-cyan-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all group">
                                                 <FiEye className="text-xl group-hover:scale-110 transition-transform" />
-                                            </button>
+                                            </Link>
                                         </div>
                                     </div>
                                 </motion.div>

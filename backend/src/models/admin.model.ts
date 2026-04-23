@@ -10,6 +10,25 @@ export const AdminService = {
     );
     return rows;
   },
+  // admin.model.ts
+
+  async getShopVerificationDetails(shopId: string) {
+    const query = `
+    SELECT 
+      s.*, 
+      u.username as owner_name, 
+      u.email as owner_email, 
+      u.phone_number as owner_phone,
+      u.is_verified as owner_account_verified,
+      u.created_at as owner_joined_at,
+      (SELECT COUNT(*) FROM listings WHERE shop_id = s.id) as total_listings
+    FROM shops s
+    JOIN users u ON s.owner_id = u.id
+    WHERE s.id = $1
+  `;
+    const { rows } = await pool.query(query, [shopId]);
+    return rows[0] || null;
+  },
   async getAllListings() {
     const query = `
     SELECT 

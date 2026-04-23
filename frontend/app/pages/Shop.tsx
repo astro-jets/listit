@@ -10,6 +10,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
 import { FaDirections } from "react-icons/fa";
 import { useAuth } from "~/context/AuthContext";
+import AuthRequiredModal from "~/components/modals/AuthModel";
+import ErrorModal from "~/components/modals/ErrorModal";
 
 const LocationViewer = React.lazy(() => import("../components/maps/LocationViewr"));
 
@@ -27,7 +29,10 @@ const ShopProfile = () => {
     const [rating, setRating] = useState(5);
     const [hover, setHover] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [ShowErrorModal, setShowErrorModal] = useState(false);
+    const [errorTitle, setErrorTitle] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
     const { user } = useAuth();
 
     useEffect(() => {
@@ -77,20 +82,29 @@ const ShopProfile = () => {
 
     const handleSubmitReview = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (rating === 0) return alert("Please select a rating.");
+        if (rating === 0) {
+            setShowErrorModal(true);
+            setErrorMsg("Please set a rating")
+            setErrorTitle("Rating not set!")
+            return
+        }
 
         setIsSubmitting(true);
         try {
-            await ReviewApiService.postShopReview({
+            const response = await ReviewApiService.postShopReview({
                 shop_id: Number(shop.id),
                 rating,
                 comment
             });
+            if (response?.error === "No token provided") {
+                setShowAuthModal(true);
+                return;
+            }
             setRating(5);
             setComment("");
             // Refresh reviews logic here
         } catch (err) {
-            alert("Unauthorized: Please log in to leave a review.");
+            setShowAuthModal(true);
         } finally {
             setIsSubmitting(false);
         }
@@ -99,12 +113,21 @@ const ShopProfile = () => {
     return (
         <div className="bg-[#F8F8F8] text-black min-h-screen selection:bg-yellow-400 font-sans pb-20">
             <PublicHeader />
-
+            <AuthRequiredModal
+                isOpen={showAuthModal}
+                onClose={() => setShowAuthModal(false)}
+            />
+            <ErrorModal
+                title={errorTitle}
+                msg={errorMsg}
+                isOpen={ShowErrorModal}
+                onClose={() => setShowErrorModal(false)}
+            />
             {/* HERO BANNER - Stark Contrast */}
             <div className="relative h-80 w-full border-b-[4px] border-black bg-zinc-200 overflow-hidden">
                 <img
-                    src={shop.logo_url || "/placeholder-banner.png"}
-                    className="w-full h-full object-cover grayscale opacity-40"
+                    src={shop.banner_url || "/placeholder-banner.png"}
+                    className="w-full h-full object-cover"
                     alt="Banner"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-white via-transparent to-transparent" />

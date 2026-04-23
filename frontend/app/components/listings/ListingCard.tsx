@@ -3,9 +3,12 @@ import { BsShopWindow } from "react-icons/bs";
 import { FiMapPin, FiHeart, FiShoppingBag } from "react-icons/fi";
 import { Link, useLocation } from "react-router";
 import { toggleFavorite } from "~/services/listing.service";
+import AuthRequiredModal from "../modals/AuthModel";
+import { set } from "zod";
 
 const ListingCard = ({ item }: any) => {
     const [favorited, setFavorited] = useState(item.is_favorited || false);
+    const [showAuthModal, setShowAuthModal] = useState(false);
     const location = useLocation();
 
     // Check if we are currently viewing a shop page to hide the "View Shop" button
@@ -14,8 +17,21 @@ const ListingCard = ({ item }: any) => {
     const toggleFavoriteListing = async (e: React.MouseEvent) => {
         e.preventDefault(); // Prevent navigating to product if card is wrapped in a link
         setFavorited(!favorited);
-        const res = await toggleFavorite(item.id);
-        setFavorited(res.favorited);
+        try {
+            const res = await toggleFavorite(item.id);
+            console.log("Toggle Favorite Response:", res);
+            // If the backend response matches your error string
+            if (!res) {
+                setFavorited(false); // Revert UI change
+                setShowAuthModal(true);
+                return;
+            }
+            setFavorited(res.favorited);
+        } catch (error) {
+            setFavorited(false); // Revert UI change
+            setShowAuthModal(true);
+
+        }
     }
 
     return (
@@ -45,6 +61,10 @@ const ListingCard = ({ item }: any) => {
                         size={18}
                     />
                 </button>
+                <AuthRequiredModal
+                    isOpen={showAuthModal}
+                    onClose={() => setShowAuthModal(false)}
+                />
             </div>
 
             {/* CONTENT AREA */}

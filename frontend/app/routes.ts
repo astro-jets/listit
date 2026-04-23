@@ -10,6 +10,7 @@ export default [
   route("/shops", "pages/Shops.tsx"),
 
   // Admin Routes
+  route("/admin/shops/:id/verify", "pages/admin/VerifyShop.tsx"),
   route("/admin/analytics", "pages/admin/Analytics.tsx"),
   route("/admin/listings", "pages/admin/Listings.tsx"),
   route("/admin/shops", "pages/admin/Shops.tsx"),

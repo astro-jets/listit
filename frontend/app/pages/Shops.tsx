@@ -127,7 +127,7 @@ const ShopCard = ({ shop, index }: { shop: Shop, index: number }) => {
                         </h3>
                         <div className="inline-flex items-center gap-2 bg-zinc-100 border border-black/10 px-2 py-0.5 text-[10px] font-black uppercase text-zinc-600">
                             <FiMapPin className="text-black" />
-                            <span>{typeof shop.location === 'string' ? shop.location : "City Center"}</span>
+                            <span>{shop.address_text}</span>
                         </div>
                     </div>
 

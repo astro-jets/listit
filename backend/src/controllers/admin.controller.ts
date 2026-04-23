@@ -1,13 +1,25 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { AdminService } from "../models/admin.model";
-import { get } from "http";
 
 export const AdminController = {
   async getDashboardStats(req: FastifyRequest, reply: FastifyReply) {
     const stats = await AdminService.getStats();
     return reply.send(stats);
   },
-
+  async getShopDetailsForAdmin(req: FastifyRequest, reply: FastifyReply) {
+    const { id } = req.params as { id: string };
+    try {
+      const details = await AdminService.getShopVerificationDetails(id);
+      if (!details) {
+        return reply.code(404).send({ error: "Shop not found" });
+      }
+      return reply.send(details);
+    } catch (error) {
+      return reply
+        .code(500)
+        .send({ error: "Failed to fetch verification details" });
+    }
+  },
   async handleApproveShop(req: FastifyRequest, reply: FastifyReply) {
     const { id } = req.params as { id: string };
     const shop = await AdminService.approveShop(id);

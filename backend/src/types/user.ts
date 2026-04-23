@@ -6,6 +6,7 @@ export interface User {
   username: string;
   artist_name: string;
   email: string;
+  phone_number: string;
   role: UserRole;
   password?: string;
 }

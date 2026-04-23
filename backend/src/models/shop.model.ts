@@ -3,16 +3,26 @@ import { pool, sql } from "../db/db"; // Use your existing sql helper
 export const shopModel = {
   async createShop(data: any) {
     const query = `
-      INSERT INTO shops (name, description, location, logo_url, owner_id)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *
-    `;
+    INSERT INTO shops (
+      name, 
+      description, 
+      location, 
+      address_text, 
+      logo_url, 
+      banner_url, 
+      owner_id
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING *
+  `;
 
     const values = [
       data.name,
       data.bio, // Maps to 'description' column
       data.location, // Stored as JSONB
+      data.address_text,
       data.logo_url,
+      data.banner_url,
       data.owner_id,
     ];
 

@@ -18,7 +18,7 @@ interface ReleaseParams {
 const signToken = (user: User) => {
   return jwt.sign(
     { id: user.id, role: user.role },
-    process.env.JWT_SECRET || "fallback_secret_must_be_changed", // Use env var or fall back
+    process.env.JWT_SECRET || "fallback_secret_must_be_changed",
     { expiresIn: "7d" },
   );
 };
@@ -27,18 +27,19 @@ export class AuthController {
   static async registerUser(req: FastifyRequest, reply: FastifyReply) {
     try {
       // 1. Process the multipart form data and upload avatar to Vercel Blob
-      // Max images set to 1 for avatar
       const { fields, imageUrls } = await processMultipartImages(req, 1);
 
-      const { username, email, password, bio } = fields;
+      // Added phone_number to extracted fields
+      const { username, email, password, bio, phone_number } = fields;
       const avatar_url = imageUrls.length > 0 ? imageUrls[0] : "";
-      const defaultRole: UserRole = 2; //
+      const defaultRole: UserRole = 2;
 
       // 2. Validation
-      if (!email || !password || !username) {
-        return reply
-          .code(400)
-          .send({ error: "Username, email, and password are required." });
+      // Added phone_number to required field check
+      if (!email || !password || !username || !phone_number) {
+        return reply.code(400).send({
+          error: "Username, email, phone number, and password are required.",
+        });
       }
 
       if (await userExists(email)) {
@@ -53,15 +54,12 @@ export class AuthController {
         username,
         defaultRole,
         bio || "",
-        avatar_url, // The URL returned from Vercel Blob
+        avatar_url,
+        phone_number, // Ensure your createUser model is updated to accept this argument
       );
 
       // 4. Generate Token and Response
-      const token = jwt.sign(
-        { id: newUser.id, role: newUser.role },
-        process.env.JWT_SECRET || "fallback_secret",
-        { expiresIn: "7d" },
-      );
+      const token = signToken(newUser);
 
       return reply.code(201).send({
         token,
@@ -69,66 +67,27 @@ export class AuthController {
           id: newUser.id,
           username: newUser.username,
           email: newUser.email,
+          phone_number: newUser.phone_number,
           avatar_url: newUser.avatar_url,
         },
       });
     } catch (err: any) {
-      // Catch Vercel Blob or DB errors
       return reply.code(500).send({
         error: err.message || "An error occurred during registration.",
       });
     }
   }
 
-  // --- ARTIST REGISTRATION (DEFAULT ROLE) ---
-  // static async registerUser(req: FastifyRequest, reply: FastifyReply) {
-  //   const { username, email, password, bio } = req.body as any;
-  //   const avatar_url = "";
-  //   const defaultRole: UserRole = 2;
-
-  //   if (!email || !password) {
-  //     return reply
-  //       .code(400)
-  //       .send({ error: "Email and password are required." });
-  //   }
-
-  //   if (await userExists(email)) {
-  //     return reply.code(409).send({ error: "User already exists." });
-  //   }
-
-  //   const hashed = await bcrypt.hash(password, 10);
-  //   const newUser = await createUser(
-  //     email,
-  //     hashed,
-  //     username,
-  //     defaultRole,
-  //     bio,
-  //     avatar_url,
-  //   );
-
-  //   // Return token on successful registration
-  //   const token = signToken(newUser as User);
-  //   return reply.code(201).send({
-  //     token,
-  //     user: {
-  //       id: (newUser as User).id,
-  //       username: (newUser as User).username,
-  //       email: (newUser as User).email,
-  //       role: (newUser as User).role,
-  //     },
-  //   });
-  // }
-
-  // --- ADMIN REGISTRATION (Special Route) ---
+  // --- ADMIN REGISTRATION ---
   static async registerAdmin(req: FastifyRequest, reply: FastifyReply) {
-    const { username, email, password, bio } = req.body as any;
+    const { username, email, password, bio, phone_number } = req.body as any;
     const avatar_url = "";
     const adminRole: UserRole = 1;
 
-    if (!email || !password) {
+    if (!email || !password || !phone_number) {
       return reply
         .code(400)
-        .send({ error: "Email and password are required." });
+        .send({ error: "Email, password, and phone number are required." });
     }
 
     if (await userExists(email)) {
@@ -145,6 +104,7 @@ export class AuthController {
       adminRole,
       bio,
       avatar_url,
+      phone_number,
     );
 
     const token = signToken(newUser as User);
@@ -171,13 +131,10 @@ export class AuthController {
     const user = await findUserByEmail(email);
     if (!user) return reply.code(401).send({ error: "Invalid credentials" });
 
-    // Check password validity
     const valid = await bcrypt.compare(password, user.password!);
     if (!valid) return reply.code(401).send({ error: "Invalid credentials" });
 
-    // Generate and return JWT
     const token = signToken(user);
-    ``;
 
     // Avoid sending the password hash back
     const { password: _, ...userPayload } = user;

@@ -36,4 +36,5 @@ export async function adminRoutes(fastify: FastifyInstance) {
   fastify.delete("/reviews/:id", AdminController.handleDeleteReview);
 
   fastify.get("/metrics", AdminController.getGrowthMetrics);
+  fastify.get("/shops/:id/verify", AdminController.getShopDetailsForAdmin);
 }

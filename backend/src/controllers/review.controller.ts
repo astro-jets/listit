@@ -61,8 +61,8 @@ export const ReviewController = {
   },
   async getShopReviews(req: FastifyRequest, reply: FastifyReply) {
     try {
-      const { shopId } = req.params as { shopId: string };
-      const reviews = await ReviewService.getByShop(shopId);
+      const { id } = req.params as { id: string };
+      const reviews = await ReviewService.getByShop(id);
       return reply.send(reviews);
     } catch (error) {
       return reply.code(500).send({ error: "Could not fetch shop" });

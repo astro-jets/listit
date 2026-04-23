@@ -28,7 +28,7 @@ const PublicHeader = () => {
 
                     {/* LOGO */}
                     <Link to="/" className="text-xl font-bold text-white">
-                        <span className="text-yellow-400">Studio</span> X
+                        <span className="text-yellow-400">LIST</span>.IT
                     </Link>
 
                     {/* DESKTOP NAV */}
