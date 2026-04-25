@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FiEye } from 'react-icons/fi';
+import { Link } from 'react-router';
 import DashboardLayout from "~/components/layouts/DashboardLayout";
 import { getDashboardData } from '~/services/shop.service';
 
@@ -86,9 +88,9 @@ const Dashboard = () => {
                                         </td>
                                         <td className="px-4 md:px-6 py-4 font-mono font-black text-sm">${item.price}</td>
                                         <td className="px-4 md:px-6 py-4 text-right">
-                                            <button className="p-2 border-2 border-transparent hover:border-black hover:bg-yellow-400 transition-all rounded-lg">
-                                                <EditIcon />
-                                            </button>
+                                            <Link to={`/inventory/${item.id}`} className="p-2 border-2 border-transparent hover:border-black hover:bg-yellow-400 transition-all rounded-lg">
+                                                <FiEye />
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}

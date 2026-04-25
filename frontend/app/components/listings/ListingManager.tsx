@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { FiCheck, FiX, FiTrash2, FiEdit3, FiPlus, FiLoader, FiPackage } from 'react-icons/fi';
+import { FiCheck, FiX, FiTrash2, FiEdit3, FiPlus, FiLoader, FiPackage, FiEye } from 'react-icons/fi';
 import NewListingForm from '../forrms/listingForm';
 import { getShopListings, updateListing, deleteListing } from '~/services/listing.service';
+import { Link } from 'react-router';
 
 interface Listing {
     id: number;
@@ -145,6 +146,12 @@ const ListingsManager = ({ shopId }: { shopId: number }) => {
                                                         >
                                                             <FiTrash2 size={16} />
                                                         </button>
+                                                        <Link to={`/inventory/${item.id}`}
+                                                            onClick={() => startEditing(item)}
+                                                            className="p-2 bg-blue-400 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                                                        >
+                                                            <FiEye size={16} />
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             </>

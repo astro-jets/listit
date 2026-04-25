@@ -40,9 +40,19 @@ export const shopModel = {
   },
 
   async getShopById(shopId: number) {
-    const { rows } = await sql(`SELECT * FROM shops WHERE id = $1 LIMIT 1`, [
-      shopId,
-    ]);
+    const query = `
+    SELECT 
+      s.*, 
+      u.username as owner_name, 
+      u.email as owner_email, 
+      u.phone_number as owner_phone
+    FROM shops s
+    JOIN users u ON s.owner_id = u.id
+    WHERE s.id = $1 
+    LIMIT 1
+  `;
+
+    const { rows } = await sql(query, [shopId]);
     return rows[0] || null;
   },
 

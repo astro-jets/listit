@@ -130,7 +130,7 @@ const ProductDetail = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-white flex flex-col items-center justify-center text-black font-black px-4">
-                <div className="p-6 md:p-8 border-[4px] border-black bg-yellow-400 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
+                <div className="p-6 md:p-8 border-4 border-black bg-yellow-400 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
                     <FiLoader className="animate-spin mb-4" size={40} />
                     <p className="uppercase tracking-widest text-lg italic">Initializing Stream...</p>
                 </div>
@@ -141,7 +141,7 @@ const ProductDetail = () => {
     if (error || !listing) {
         return (
             <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-                <div className="border-[4px] border-black p-8 md:p-12 bg-zinc-50 shadow-[8px_8px_0px_0px_rgba(239,68,68,1)] max-w-lg">
+                <div className="border-4 border-black p-8 md:p-12 bg-zinc-50 shadow-[8px_8px_0px_0px_rgba(239,68,68,1)] max-w-lg">
                     <FiAlertCircle size={56} className="mb-4 mx-auto text-red-500" />
                     <h1 className="text-3xl md:text-4xl font-black uppercase mb-4 italic">404: Archive Lost</h1>
                     <p className="font-bold uppercase text-zinc-600 text-sm">{error}</p>
@@ -188,7 +188,7 @@ const ProductDetail = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16">
                     {/* GALLERY */}
                     <div className="space-y-4 md:space-y-6">
-                        <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden aspect-square relative">
+                        <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden aspect-square relative">
                             <AnimatePresence mode="wait">
                                 <motion.img
                                     key={activeImage}
@@ -206,7 +206,7 @@ const ProductDetail = () => {
                                     key={i}
                                     src={img}
                                     onClick={() => setActiveImage(img)}
-                                    className={`w-20 h-20 md:w-24 md:h-24 object-cover border-[3px] cursor-pointer transition-all flex-shrink-0 ${activeImage === img
+                                    className={`w-20 h-20 md:w-24 md:h-24 object-cover border-[3px] cursor-pointer transition-all shrink-0 ${activeImage === img
                                         ? "border-yellow-400 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-1"
                                         : "border-black grayscale opacity-60 hover:opacity-100 hover:grayscale-0"
                                         }`}
@@ -226,7 +226,7 @@ const ProductDetail = () => {
                             </h1>
                         </div>
 
-                        <div className="text-4xl md:text-6xl font-black bg-yellow-400 border-[3px] md:border-[4px] border-black p-4 md:p-6 inline-block w-fit shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] italic">
+                        <div className="text-4xl md:text-6xl font-black bg-yellow-400 border-[3px] md:border-4 border-black p-4 md:p-6 inline-block w-fit shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] italic">
                             <span className="text-base md:text-lg font-bold mr-2 not-italic">MWK</span>
                             {listing.price.toLocaleString()}
                         </div>
@@ -245,7 +245,7 @@ const ProductDetail = () => {
                         </Link>
 
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Link to={`/shop/${listing.shop_id}`} className="flex-[4] bg-black text-white text-center py-4 md:py-5 font-black uppercase text-lg md:text-xl border-[3px] border-black hover:bg-yellow-400 hover:text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all">
+                            <Link to={`/shop/${listing.shop_id}`} className="flex-4 bg-black text-white text-center py-4 md:py-5 font-black uppercase text-lg md:text-xl border-[3px] border-black hover:bg-yellow-400 hover:text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all">
                                 Establish Contact
                             </Link>
                             <button
@@ -272,13 +272,13 @@ const ProductDetail = () => {
                 </div>
 
                 {/* REVIEWS */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 border-t-[6px] md:border-t-[8px] border-black pt-10 md:pt-16">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 border-t-[6px] md:border-t-8 border-black pt-10 md:pt-16">
                     <div className="lg:col-span-1 space-y-6 md:space-y-8">
                         <h2 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase">
                             User <span className="bg-yellow-400 px-2">Feedback</span>
                         </h2>
 
-                        <form onSubmit={handleSubmitReview} className="bg-white border-[4px] border-black p-6 md:p-8 shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] md:shadow-[10px_10px_0px_0px_rgba(250,204,21,1)] space-y-6">
+                        <form onSubmit={handleSubmitReview} className="bg-white border-4 border-black p-6 md:p-8 shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] md:shadow-[10px_10px_0px_0px_rgba(250,204,21,1)] space-y-6">
                             <div className="flex gap-2 bg-black p-2 md:p-3 w-fit border-2 border-black">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
@@ -312,7 +312,7 @@ const ProductDetail = () => {
 
                     <div className="lg:col-span-2 space-y-8 md:space-y-10">
                         {reviews.length > 0 ? reviews.map((r) => (
-                            <div key={r.id} className="border-b-[3px] md:border-b-[4px] border-black pb-8 group">
+                            <div key={r.id} className="border-b-[3px] md:border-b-4 border-black pb-8 group">
                                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                                     <div className="flex items-center gap-3 md:gap-4">
                                         <img
@@ -337,14 +337,14 @@ const ProductDetail = () => {
                                         )}
                                     </div>
                                 </div>
-                                <div className="bg-zinc-50 border-l-[6px] md:border-l-[8px] border-black p-4 md:p-6">
+                                <div className="bg-zinc-50 border-l-[6px] md:border-l-8 border-black p-4 md:p-6">
                                     <p className="text-lg md:text-xl font-bold uppercase italic leading-tight text-zinc-800">
                                         "{r.comment}"
                                     </p>
                                 </div>
                             </div>
                         )) : (
-                            <div className="h-64 flex flex-col items-center justify-center border-[4px] border-dashed border-zinc-300 text-zinc-400 px-6 text-center">
+                            <div className="h-64 flex flex-col items-center justify-center border-4 border-dashed border-zinc-300 text-zinc-400 px-6 text-center">
                                 <FiMessageSquare size={40} className="mb-4 opacity-20" />
                                 <p className="font-black uppercase italic text-lg md:text-xl tracking-tighter">No signals detected.</p>
                             </div>
@@ -353,8 +353,8 @@ const ProductDetail = () => {
                 </div>
             </div>
 
-            <footer className="bg-black text-white mt-20 md:mt-24 py-12 md:py-16 border-t-[8px] md:border-t-[10px] border-yellow-400 text-center px-4">
-                <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter mb-4">Studio X Hub</h2>
+            <footer className="bg-black text-white mt-20 md:mt-24 py-12 md:py-16 border-t-8 md:border-t-10 border-yellow-400 text-center px-4">
+                <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter mb-4">List IT Hub</h2>
                 <p className="uppercase font-bold text-zinc-500 tracking-[0.15em] md:tracking-[0.3em] text-xs md:text-sm">Authorized Trading Floor</p>
             </footer>
         </div>

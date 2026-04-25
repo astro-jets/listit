@@ -19,6 +19,7 @@ export default [
 
   // User Routes
 
+  route("/inventory/:id", "pages/users/Product.tsx"),
   route("/favorites", "pages/Favourites.tsx"),
   route("/dashboard", "pages/users/Dashboard.tsx"),
   route("/profile", "pages/users/Profile.tsx"),

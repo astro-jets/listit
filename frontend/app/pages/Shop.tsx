@@ -1,5 +1,5 @@
 import ListingCard from "~/components/listings/ListingCard";
-import { FiStar, FiMapPin, FiAlertCircle, FiLoader, FiCheckCircle, FiMessageSquare, FiSend, FiTrash2, FiClock } from "react-icons/fi";
+import { FiStar, FiMapPin, FiAlertCircle, FiLoader, FiCheckCircle, FiMessageSquare, FiSend, FiTrash2, FiClock, FiMail, FiPhone } from "react-icons/fi";
 import PublicHeader from "~/components/layouts/PublicLayout";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router";
@@ -150,6 +150,8 @@ const ShopProfile = () => {
                         />
                     </motion.div>
 
+
+
                     {/* DESCRIPTION BOX */}
                     <div className="flex-1 bg-white border-[4px] border-black p-8 shadow-[12px_12px_0px_0px_rgba(250,204,21,1)]">
                         <div className="flex flex-wrap items-center gap-4 mb-4">
@@ -157,9 +159,28 @@ const ShopProfile = () => {
                                 {shop.name}
                             </h1>
                             <FiCheckCircle className="text-blue-500" size={30} strokeWidth={3} />
-                        </div>
 
+                        </div>
+                        <div className="border-t-[4px] border-black pt-6 mt-6">
+                            <h3 className="text-sm font-black uppercase mb-4 bg-black text-white inline-block px-2">Merchant_Intel</h3>
+                            <div className="flex flex-wrap gap-4">
+                                <a
+                                    href={`tel:${shop.owner_phone}`}
+                                    className="flex items-center gap-3 bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+                                >
+                                    <FiPhone /> {shop.owner_phone}
+                                </a>
+                                <a
+                                    href={`mailto:${shop.owner_email}`}
+                                    className="flex items-center gap-3 bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+                                >
+                                    <FiMail /> {shop.owner_email}
+                                </a>
+                            </div>
+                            <p className="text-[10px] font-black uppercase mt-3 text-zinc-400 italic">Verified Owner: {shop.owner_name}</p>
+                        </div>
                         <div className="flex flex-wrap items-center gap-6 text-xs font-black uppercase mb-6">
+
                             <div className="bg-yellow-400 border-[2px] border-black px-3 py-1 flex items-center gap-2">
                                 <FiStar fill="black" /> {shop.rating || "5.0"} [120+ FEEDBACKS]
                             </div>
@@ -170,6 +191,7 @@ const ShopProfile = () => {
                                 <FiClock /> EST. MARCH 2026
                             </div>
                         </div>
+
 
                         <p className="text-xl font-bold leading-tight text-zinc-800 uppercase max-w-3xl">
                             {shop.description}

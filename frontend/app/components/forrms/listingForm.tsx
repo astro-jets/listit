@@ -212,7 +212,7 @@ const NewListingForm = ({ onBack, shopId }: Props) => {
 
                 <button
                     disabled={isSubmitting || isLoadingCats}
-                    className="w-full bg-black text-white py-4 md:py-6 text-lg md:text-xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] hover:bg-yellow-400 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 disabled:opacity-50 border-4 border-black"
+                    className="w-full bg-black text-white py-4 md:py-6 text-lg md:text-xl font-black uppercase tracking-widest md:tracking-[0.2em] hover:bg-yellow-400 hover:text-black transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 disabled:opacity-50 border-4 border-black"
                 >
                     {isSubmitting ? (
                         <div className="flex items-center justify-center gap-3">

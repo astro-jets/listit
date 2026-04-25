@@ -13,7 +13,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ isSidebarOpen }) => {
     return (
         <aside
             className={`
-        ${isSidebarOpen ? 'w-64' : 'w-20'} 
+        ${isSidebarOpen ? 'w-72' : 'w-20'} 
         bg-black text-white transition-all duration-300 ease-in-out 
         flex flex-col border-r border-yellow-500/20 sticky top-0 h-screen
       `}

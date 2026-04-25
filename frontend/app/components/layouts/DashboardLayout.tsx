@@ -47,7 +47,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             {/* --- BACKDROP (Mobile Only) --- */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] md:hidden"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-55 md:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}

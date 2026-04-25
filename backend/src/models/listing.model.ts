@@ -164,20 +164,46 @@ export const listingModel = {
   // SEARCH
   async searchListings(searchTerm: string, userId?: string | null) {
     const query = `
-    SELECT l.*, s.name as shop_name, s.logo_url as shop_logo,
+    SELECT 
+      l.*, 
+      s.id as shop_id, s.name as shop_name, s.logo_url as shop_logo, s.description as shop_description,
       (CASE WHEN $2::uuid IS NOT NULL AND f.user_id = $2::uuid THEN TRUE ELSE FALSE END)::boolean as is_favorited,
       (SELECT image_url FROM listing_images WHERE listing_id = l.id LIMIT 1) as image
     FROM listings l
     JOIN shops s ON l.shop_id = s.id
     LEFT JOIN favorites f ON l.id = f.listing_id AND f.user_id = $2::uuid
     WHERE (l.title ILIKE $1 OR l.description ILIKE $1)
-      AND s.is_approved = true AND l.status = 'available'
+      AND s.is_approved = true 
+      AND l.status = 'available'
     ORDER BY l.created_at DESC`;
+
     const { rows } = await pool.query(query, [
       `%${searchTerm}%`,
       userId || null,
     ]);
-    return rows;
+
+    // 1. Extract and deduplicate Shops
+    const shopsMap = new Map();
+    rows.forEach((row) => {
+      if (!shopsMap.has(row.shop_id)) {
+        shopsMap.set(row.shop_id, {
+          id: row.shop_id,
+          name: row.shop_name,
+          logo_url: row.shop_logo,
+          description: row.shop_description,
+        });
+      }
+    });
+
+    // 2. Clean up Listing objects (remove redundant shop fields if preferred)
+    const listings = rows.map(
+      ({ shop_logo, shop_description, ...listing }) => listing,
+    );
+
+    return {
+      listings,
+      shops: Array.from(shopsMap.values()),
+    };
   },
 
   // GET: User's own listings
