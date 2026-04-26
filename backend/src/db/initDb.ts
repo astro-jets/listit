@@ -107,17 +107,6 @@ export async function initDb(pool: Pool) {
         UNIQUE(review_id)
       );
 
-      CREATE TABLE IF NOT EXISTS notifications (
-        id SERIAL PRIMARY KEY,
-        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-        title TEXT NOT NULL,
-        message TEXT NOT NULL,
-        type TEXT NOT NULL, -- e.g., 'APPROVAL', 'REVIEW', 'PRICE_DROP'
-        link TEXT,          -- URL to redirect the user (e.g., '/shop/1')
-        is_read BOOLEAN DEFAULT false,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-
       -- 8. SEARCH OPTIMIZATION (GIN Indexes for the hybrid search)
       CREATE INDEX IF NOT EXISTS idx_listings_title_trgm ON listings USING gin (title gin_trgm_ops);
       CREATE INDEX IF NOT EXISTS idx_shops_name_trgm ON shops USING gin (name gin_trgm_ops);
@@ -152,21 +141,6 @@ export async function initDb(pool: Pool) {
         RETURN NEW;
       END;
       $$ LANGUAGE plpgsql;
-
-      CREATE OR REPLACE FUNCTION notify_new_review() RETURNS TRIGGER AS $$
-      BEGIN
-        -- This sends a 'new_review' signal to your Fastify server
-        PERFORM pg_notify('new_review', json_build_object(
-          'shop_id', NEW.shop_id,
-          'rating', NEW.rating
-        )::text);
-        RETURN NEW;
-      END;
-      $$ LANGUAGE plpgsql;
-
-      CREATE TRIGGER review_alert
-      AFTER INSERT ON reviews
-      FOR EACH ROW EXECUTE FUNCTION notify_new_review();
 
       DROP TRIGGER IF EXISTS users_updated ON users;
       CREATE TRIGGER users_updated BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_timestamp();
