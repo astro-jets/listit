@@ -44,6 +44,7 @@ export const listingModel = {
       `SELECT 
         l.*, 
         c.name as category_name,
+        s.address_text as shop_location,
         -- Use EXISTS for a clean, consistent boolean check
         EXISTS (
           SELECT 1 FROM favorites f 
@@ -58,9 +59,10 @@ export const listingModel = {
           '[]'
         ) as images
      FROM listings l
+     JOIN shops s ON l.shop_id = s.id
      LEFT JOIN categories c ON l.category_id = c.id
      WHERE l.shop_id = $1
-     GROUP BY l.id, c.name
+     GROUP BY l.id, c.name, s.address_text
      ORDER BY l.created_at DESC`,
       [shopId, userId || null],
     );
@@ -75,8 +77,12 @@ export const listingModel = {
       c.name as category_name,
       s.name as shop_name, 
       s.logo_url as shop_logo,
+      s.address_text as shop_location,
       s.description as shop_description,
       s.is_approved as shop_is_approved,
+      -- Get shop rating and review count
+      COALESCE(sr.avg_rating, 0) as shop_rating,
+      COALESCE(sr.review_count, 0) as shop_review_count,
       -- Check if THIS specific user has favorited THIS specific listing
       EXISTS (
         SELECT 1 FROM favorites f 
@@ -93,8 +99,18 @@ export const listingModel = {
     FROM listings l
     JOIN shops s ON l.shop_id = s.id
     LEFT JOIN categories c ON l.category_id = c.id
+    -- Subquery for merchant performance
+    LEFT JOIN (
+      SELECT 
+        shop_id, 
+        ROUND(AVG(rating), 1) as avg_rating, 
+        COUNT(*) as review_count
+      FROM reviews
+      WHERE shop_id IS NOT NULL
+      GROUP BY shop_id
+    ) sr ON s.id = sr.shop_id
     WHERE l.id = $1
-    GROUP BY l.id, s.id, c.name`,
+    GROUP BY l.id, s.id, c.name, sr.avg_rating, sr.review_count`,
       [id, userId || null],
     );
 
@@ -137,7 +153,7 @@ export const listingModel = {
     const listings = await pool.query(
       `SELECT 
         l.id, l.title, l.price, c.name as category_name, l.created_at,
-        s.id as shop_id, s.name as shop_name,
+        s.id as shop_id, s.name as shop_name, s.address_text as shop_location,
         (CASE WHEN $3::uuid IS NOT NULL AND f.user_id = $3::uuid THEN TRUE ELSE FALSE END)::boolean as is_favorited,
         (SELECT image_url FROM listing_images WHERE listing_id = l.id LIMIT 1) as image
       FROM listings l
@@ -166,12 +182,22 @@ export const listingModel = {
     const query = `
     SELECT 
       l.*, 
-      s.id as shop_id, s.name as shop_name, s.logo_url as shop_logo, s.description as shop_description,
-      (CASE WHEN $2::uuid IS NOT NULL AND f.user_id = $2::uuid THEN TRUE ELSE FALSE END)::boolean as is_favorited,
+      c.name as category_name,
+      s.id as shop_id, 
+      s.name as shop_name, 
+      s.logo_url as shop_logo, 
+      s.description as shop_description, 
+      s.address_text as shop_location,
+      -- Cleaner boolean check for favorites
+      EXISTS (
+        SELECT 1 FROM favorites f 
+        WHERE f.listing_id = l.id 
+        AND f.user_id = $2::uuid
+      )::boolean as is_favorited,
       (SELECT image_url FROM listing_images WHERE listing_id = l.id LIMIT 1) as image
     FROM listings l
     JOIN shops s ON l.shop_id = s.id
-    LEFT JOIN favorites f ON l.id = f.listing_id AND f.user_id = $2::uuid
+    LEFT JOIN categories c ON l.category_id = c.id
     WHERE (l.title ILIKE $1 OR l.description ILIKE $1)
       AND s.is_approved = true 
       AND l.status = 'available'
@@ -191,6 +217,7 @@ export const listingModel = {
           name: row.shop_name,
           logo_url: row.shop_logo,
           description: row.shop_description,
+          location: row.shop_location,
         });
       }
     });
@@ -209,7 +236,7 @@ export const listingModel = {
   // GET: User's own listings
   async getListingsByUser(userId: string) {
     const result = await pool.query(
-      `SELECT l.*, s.name as shop_name, s.logo_url as shop_logo,
+      `SELECT l.*, s.name as shop_name, s.logo_url as shop_logo,  s.address_text as shop_location,
         (CASE WHEN f.user_id IS NOT NULL THEN TRUE ELSE FALSE END)::boolean as is_favorited,
         COALESCE(json_agg(li.image_url) FILTER (WHERE li.image_url IS NOT NULL), '[]') as images
       FROM listings l

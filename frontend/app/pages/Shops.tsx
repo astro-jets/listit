@@ -136,9 +136,6 @@ const ShopCard = ({ shop, index }: { shop: Shop, index: number }) => {
                     </p>
 
                     <div className="pt-6 mt-auto flex items-center justify-between border-t-[3px] border-black border-dashed">
-                        <span className="text-[10px] font-black uppercase text-zinc-400 italic">
-                            Unit Count: 060
-                        </span>
 
                         <Link
                             to={`/shop/${shop.id}`}

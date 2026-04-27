@@ -1,7 +1,7 @@
 import ListingCard from "~/components/listings/ListingCard";
-import { FiStar, FiMapPin, FiAlertCircle, FiLoader, FiCheckCircle, FiMessageSquare, FiSend, FiTrash2, FiClock, FiMail, FiPhone } from "react-icons/fi";
+import { FiStar, FiMapPin, FiAlertCircle, FiMessageSquare, FiPhone, FiMail, FiClock } from "react-icons/fi";
 import PublicHeader from "~/components/layouts/PublicLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useParams } from "react-router";
 import { getShopListings } from "~/services/listing.service";
 import { getShopById } from "~/services/shop.service";
@@ -12,6 +12,7 @@ import { FaDirections } from "react-icons/fa";
 import { useAuth } from "~/context/AuthContext";
 import AuthRequiredModal from "~/components/modals/AuthModel";
 import ErrorModal from "~/components/modals/ErrorModal";
+import { MdVerified } from "react-icons/md";
 
 const LocationViewer = React.lazy(() => import("../components/maps/LocationViewr"));
 
@@ -35,25 +36,26 @@ const ShopProfile = () => {
     const [errorMsg, setErrorMsg] = useState('');
     const { user } = useAuth();
 
+    const fetchShopData = async () => {
+        if (!id) return;
+        try {
+            setIsLoading(true);
+            const [shopData, productsData, reviewsData] = await Promise.all([
+                getShopById(id),
+                getShopListings(id),
+                ReviewApiService.getShopReviews(id)
+            ]);
+            setShop(shopData);
+            setProducts(productsData);
+            setReviews(reviewsData);
+        } catch (err) {
+            setError("Merchant record not found in this sector.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchShopData = async () => {
-            if (!id) return;
-            try {
-                setIsLoading(true);
-                const [shopData, productsData, reviewsData] = await Promise.all([
-                    getShopById(id),
-                    getShopListings(id),
-                    ReviewApiService.getShopReviews(id)
-                ]);
-                setShop(shopData);
-                setProducts(productsData);
-                setReviews(reviewsData)
-            } catch (err) {
-                setError("Merchant record not found in this sector.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchShopData();
     }, [id]);
 
@@ -78,15 +80,19 @@ const ShopProfile = () => {
         );
     }
 
-    const coords = shop.location || { lat: 0, lng: 0 };
+    // Helper for "EST. DATE"
+    const establishedDate = new Date(shop.created_at).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
+    }).toUpperCase();
 
     const handleSubmitReview = async (e: React.FormEvent) => {
         e.preventDefault();
         if (rating === 0) {
             setShowErrorModal(true);
-            setErrorMsg("Please set a rating")
-            setErrorTitle("Rating not set!")
-            return
+            setErrorMsg("Please set a rating");
+            setErrorTitle("Rating not set!");
+            return;
         }
 
         setIsSubmitting(true);
@@ -102,7 +108,7 @@ const ShopProfile = () => {
             }
             setRating(5);
             setComment("");
-            // Refresh reviews logic here
+            fetchShopData(); // Refresh to show new review
         } catch (err) {
             setShowAuthModal(true);
         } finally {
@@ -113,24 +119,17 @@ const ShopProfile = () => {
     return (
         <div className="bg-[#F8F8F8] text-black min-h-screen selection:bg-yellow-400 font-sans pb-20">
             <PublicHeader />
-            <AuthRequiredModal
-                isOpen={showAuthModal}
-                onClose={() => setShowAuthModal(false)}
-            />
-            <ErrorModal
-                title={errorTitle}
-                msg={errorMsg}
-                isOpen={ShowErrorModal}
-                onClose={() => setShowErrorModal(false)}
-            />
-            {/* HERO BANNER - Stark Contrast */}
+            <AuthRequiredModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+            <ErrorModal title={errorTitle} msg={errorMsg} isOpen={ShowErrorModal} onClose={() => setShowErrorModal(false)} />
+
+            {/* HERO BANNER */}
             <div className="relative h-80 w-full border-b-[4px] border-black bg-zinc-200 overflow-hidden">
                 <img
-                    src={shop.banner_url || "/placeholder-banner.png"}
+                    src={shop.banner_url || "https://placehold.co/1200x400/000000/FFFFFF?text=LIST.IT+MERCHANT"}
                     className="w-full h-full object-cover"
-                    alt="Banner"
+                    alt={`${shop.name} banner`}
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-white via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
             </div>
 
             {/* SHOP IDENTITY SECTION */}
@@ -144,65 +143,67 @@ const ShopProfile = () => {
                         className="w-48 h-48 md:w-56 md:h-56 bg-white border-[4px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden shrink-0"
                     >
                         <img
-                            src={shop.logo_url || "/img.png"}
+                            src={shop.logo_url || "https://placehold.co/400x400/FFFFFF/000000?text=LOGO"}
                             className="w-full h-full object-cover"
                             alt={shop.name}
                         />
                     </motion.div>
 
-
-
                     {/* DESCRIPTION BOX */}
                     <div className="flex-1 bg-white border-[4px] border-black p-8 shadow-[12px_12px_0px_0px_rgba(250,204,21,1)]">
                         <div className="flex flex-wrap items-center gap-4 mb-4">
-                            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter italic italic-bold leading-none">
+                            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">
                                 {shop.name}
                             </h1>
-                            <FiCheckCircle className="text-blue-500" size={30} strokeWidth={3} />
+                            {shop.is_approved && (
+                                <div className="flex flex-col items-center">
+                                    <MdVerified className="text-yellow-500 shadow-sm" size={40} />
+                                    <small className="text-[10px] font-black uppercase">Verified</small>
+                                </div>
+                            )}
+                        </div>
 
-                        </div>
-                        <div className="border-t-[4px] border-black pt-6 mt-6">
-                            <h3 className="text-sm font-black uppercase mb-4 bg-black text-white inline-block px-2">Merchant_Intel</h3>
-                            <div className="flex flex-wrap gap-4">
-                                <a
-                                    href={`tel:${shop.owner_phone}`}
-                                    className="flex items-center gap-3 bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
-                                >
-                                    <FiPhone /> {shop.owner_phone}
-                                </a>
-                                <a
-                                    href={`mailto:${shop.owner_email}`}
-                                    className="flex items-center gap-3 bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
-                                >
-                                    <FiMail /> {shop.owner_email}
-                                </a>
-                            </div>
-                            <p className="text-[10px] font-black uppercase mt-3 text-zinc-400 italic">Verified Owner: {shop.owner_name}</p>
-                        </div>
                         <div className="flex flex-wrap items-center gap-6 text-xs font-black uppercase mb-6">
-
                             <div className="bg-yellow-400 border-[2px] border-black px-3 py-1 flex items-center gap-2">
-                                <FiStar fill="black" /> {shop.rating || "5.0"} [120+ FEEDBACKS]
+                                <FiStar fill="black" /> {shop.rating || "N/A"} [{reviews.length} FEEDBACKS]
                             </div>
                             <div className="flex items-center gap-2 border-[2px] border-black px-3 py-1 bg-white">
-                                <FiMapPin /> {typeof shop.location === 'string' ? shop.location : "Blantyre, Malawi"}
+                                <FiMapPin /> {shop.address_text || "Location Unset"}
                             </div>
                             <div className="flex items-center gap-2 text-zinc-500">
-                                <FiClock /> EST. MARCH 2026
+                                <FiClock /> EST. {establishedDate}
                             </div>
                         </div>
 
-
-                        <p className="text-xl font-bold leading-tight text-zinc-800 uppercase max-w-3xl">
-                            {shop.description}
+                        <p className="text-xl font-bold leading-tight text-zinc-800 uppercase max-w-3xl mb-8">
+                            {shop.description || "No description provided by merchant."}
                         </p>
+
+                        {/* CONTACT INFO */}
+                        <div className="border-t-[4px] border-black pt-6 flex flex-wrap gap-4">
+                            <div className="w-full mb-2">
+                                <h3 className="text-xs font-black uppercase bg-black text-white inline-block px-2 py-1">
+                                    Owner: {shop.owner_name || "Unknown"}
+                                </h3>
+                            </div>
+                            {shop.owner_phone && (
+                                <a href={`tel:${shop.owner_phone}`} className="flex items-center gap-3 bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+                                    <FiPhone /> {shop.owner_phone}
+                                </a>
+                            )}
+                            {shop.owner_email && (
+                                <a href={`mailto:${shop.owner_email}`} className="flex items-center gap-3 bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+                                    <FiMail /> {shop.owner_email}
+                                </a>
+                            )}
+                        </div>
 
                         <div className="mt-8">
                             <button
                                 className="inline-flex items-center gap-3 bg-black text-white px-8 py-4 font-black uppercase italic border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] hover:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
                                 onClick={() => setShowMap(!showMap)}
                             >
-                                <FaDirections /> {!showMap ? "Locate Establishment" : "Collapse Intel"}
+                                <FaDirections /> {!showMap ? "Get Directions" : "Close Map"}
                             </button>
                         </div>
                     </div>
@@ -212,13 +213,15 @@ const ShopProfile = () => {
                 <AnimatePresence>
                     {showMap && (
                         <motion.div
-                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                            initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1, marginTop: 40 }}
-                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                            exit={{ height: 0, opacity: 0 }}
                             className="border-[4px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden bg-white"
                         >
                             <div className="h-[400px]">
-                                <LocationViewer coords={coords} shop={shop} />
+                                <Suspense fallback={<div className="h-full flex items-center justify-center font-black uppercase">Loading Satellite Intel...</div>}>
+                                    <LocationViewer coords={shop.location} shop={shop} />
+                                </Suspense>
                             </div>
                         </motion.div>
                     )}
@@ -226,8 +229,6 @@ const ShopProfile = () => {
 
                 {/* MAIN CONTENT GRID */}
                 <div className="grid lg:grid-cols-3 gap-16 mt-20">
-
-                    {/* LEFT: PRODUCTS */}
                     <div className="lg:col-span-2 space-y-8">
                         <div className="flex items-end justify-between border-b-[6px] border-black pb-4">
                             <h2 className="text-4xl font-black uppercase italic tracking-tighter">Current Inventory</h2>
@@ -235,36 +236,30 @@ const ShopProfile = () => {
                         </div>
 
                         <div className="grid sm:grid-cols-2 gap-8">
-                            {products.map((item, i) => (
-                                <div key={item.id} className="h-full">
-                                    <ListingCard item={item} />
+                            {products.length > 0 ? products.map((item) => (
+                                <ListingCard key={item.id} item={item} />
+                            )) : (
+                                <div className="col-span-full border-[3px] border-dashed border-black p-10 text-center font-black uppercase text-zinc-400">
+                                    Inventory empty for this sector.
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
 
-                    {/* RIGHT: REVIEWS */}
+                    {/* REVIEWS SECTION */}
                     <div className="space-y-10">
                         <div className="border-[4px] border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                             <h2 className="text-2xl font-black uppercase italic mb-6 flex items-center gap-3">
                                 <FiMessageSquare size={28} className="text-yellow-400" /> Submit Intel
                             </h2>
-
                             <form onSubmit={handleSubmitReview} className="space-y-6">
                                 <div className="flex gap-2 bg-zinc-100 p-3 border-[2px] border-black w-fit">
                                     {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => setRating(star)}
-                                            onMouseEnter={() => setHover(star)}
-                                            onMouseLeave={() => setHover(0)}
+                                        <button key={star} type="button" onClick={() => setRating(star)}
+                                            onMouseEnter={() => setHover(star)} onMouseLeave={() => setHover(0)}
                                             className="text-2xl transition-transform active:scale-90"
                                         >
-                                            <FiStar
-                                                fill={(hover || rating) >= star ? "black" : "transparent"}
-                                                className="text-black"
-                                            />
+                                            <FiStar fill={(hover || rating) >= star ? "black" : "transparent"} className="text-black" />
                                         </button>
                                     ))}
                                 </div>
@@ -284,7 +279,6 @@ const ShopProfile = () => {
                             </form>
                         </div>
 
-                        {/* FEEDBACK FEED */}
                         <div className="space-y-6">
                             <h3 className="text-xl font-black uppercase tracking-widest border-l-[10px] border-black pl-4">Verified Reports</h3>
                             {reviews.length > 0 ? reviews.map((r) => (
@@ -292,11 +286,13 @@ const ShopProfile = () => {
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 border-[2px] border-black overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                                                <img src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.username}`} alt="User" />
+                                                <img src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.username}&background=random`} alt="User" />
                                             </div>
                                             <div>
                                                 <h4 className="font-black text-xs uppercase underline">{r.username}</h4>
-                                                <p className="text-[10px] font-bold text-zinc-500 uppercase">{new Date(r.created_at).toLocaleDateString()}</p>
+                                                <p className="text-[10px] font-bold text-zinc-500 uppercase">
+                                                    {new Date(r.created_at).toLocaleDateString()}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="flex text-black text-[10px] font-black bg-yellow-400 px-2 border-[1.5px] border-black">
@@ -306,11 +302,6 @@ const ShopProfile = () => {
                                     <p className="font-bold text-sm uppercase leading-tight text-zinc-700">
                                         "{r.comment}"
                                     </p>
-                                    {r.user_id === user?.id && (
-                                        <button className="mt-4 text-red-600 font-black text-[10px] uppercase hover:underline">
-                                            [ Redact Review ]
-                                        </button>
-                                    )}
                                 </div>
                             )) : (
                                 <div className="border-[3px] border-dashed border-black p-10 text-center font-black uppercase text-zinc-400">

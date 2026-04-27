@@ -237,7 +237,7 @@ const ProductDetail = () => {
                                 <div className="flex-1">
                                     <h3 className="text-lg md:text-xl font-black uppercase italic group-hover:text-yellow-600 transition-colors underline decoration-4 underline-offset-4">{listing.shop_name}</h3>
                                     <div className="flex flex-wrap items-center gap-3 md:gap-4 text-[10px] md:text-xs font-bold uppercase mt-2">
-                                        <span className="flex items-center gap-1 bg-black text-white px-2 py-0.5"><FiStar fill="currentColor" /> {listing.rating || "5.0"}</span>
+                                        <span className="flex items-center gap-1 bg-black text-white px-2 py-0.5"><FiStar fill="currentColor" /> {listing.shop_rating || "5.0"}</span>
                                         <span className="flex items-center gap-1 whitespace-nowrap"><FiMapPin /> {listing.location}</span>
                                     </div>
                                 </div>

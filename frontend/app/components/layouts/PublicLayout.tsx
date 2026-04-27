@@ -4,12 +4,11 @@ import {
     FiX,
     FiSearch,
     FiUser,
-    FiShoppingBag,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "~/context/AuthContext";
 
-const PublicHeader = () => {
+const PublicHeader = ({ showSearchOnHome = true }: { showSearchOnHome?: boolean }) => {
     const [open, setOpen] = useState(false);
     const { user, logout } = useAuth();
     const [query, setQuery] = useState("");
@@ -21,117 +20,121 @@ const PublicHeader = () => {
         navigate(`/search?q=${encodeURIComponent(query)}`);
     };
 
-    return (
-        <header className="sticky top-0 z-50 bg-black/80 backdrop-blur border-b border-white/10">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
+    // Check if we are on the root path
+    const isHomePage = window.location.pathname === "/";
 
-                    {/* LOGO */}
-                    <Link to="/" className="text-xl font-bold text-white">
-                        <span className="text-yellow-400">LIST</span>.IT
+    // Logic to determine if search should be visible
+    const shouldShowSearch = !isHomePage || showSearchOnHome;
+
+    return (
+        <header className="sticky top-0 z-50 bg-white border-b-[4px] border-black">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="flex items-center justify-between h-20">
+
+                    {/* LOGO - Brutalist Style */}
+                    <Link to="/" className="text-2xl font-black italic tracking-tighter uppercase border-[3px] border-black px-3 py-1 bg-yellow-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                        LIST<span className="text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">.IT</span>
                     </Link>
 
                     {/* DESKTOP NAV */}
-                    <nav className="hidden md:flex items-center gap-6 text-sm text-zinc-300">
-                        <Link to="/explore" className="hover:text-yellow-400 transition">
+                    <nav className="hidden md:flex items-center gap-8 font-black uppercase text-xs tracking-widest">
+                        <Link to="/explore" className="hover:underline decoration-[3px] decoration-yellow-400 underline-offset-4">
                             Explore
                         </Link>
-                        <Link to="/shops" className="hover:text-yellow-400 transition">
+                        <Link to="/shops" className="hover:underline decoration-[3px] decoration-yellow-400 underline-offset-4">
                             Shops
                         </Link>
 
-                        {/* --- AUTH PROTECTED LINKS --- */}
                         {user && user.role === 2 && (
                             <>
-                                <Link to="/myshop" className="hover:text-yellow-400 transition">
+                                <Link to="/myshop" className="hover:underline decoration-[3px] decoration-yellow-400 underline-offset-4">
                                     My Shop
                                 </Link>
-                                <Link to="/favorites" className="hover:text-yellow-400 transition">
+                                <Link to="/favorites" className="hover:underline decoration-[3px] decoration-yellow-400 underline-offset-4">
                                     Favorites
                                 </Link>
                             </>
                         )}
                     </nav>
 
-                    {/* SEARCH - (Keep as is) */}
-                    <form onSubmit={handleSearch} className="hidden md:flex items-center group relative">
-                        <button type="submit" className="bg-yellow-500 rounded-full z-999 absolute right-4 top-1/2 -translate-y-1/2 p-1 cursor-pointer group-focus-within:bg-yellow-400 transition">
-                            <FiSearch className=" text-zinc-500 " color="black" />
-                        </button>
+                    {/* UPDATED SEARCH FORM */}
+                    <form
+                        onSubmit={handleSearch}
+                        className={`hidden md:flex items-center relative w-64 transition-all duration-300 ${shouldShowSearch ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+                            }`}
+                    >
                         <input
                             type="text"
-                            placeholder="Search items..."
-                            className="w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl py-2 pr-12 pl-4 outline-none focus:border-yellow-400/50 focus:ring-4 focus:ring-yellow-400/10 transition-all"
+                            placeholder="SEARCH INTEL..."
+                            className="w-full bg-white border-[3px] border-black py-2 pr-10 pl-4 font-bold uppercase text-sm focus:bg-yellow-50 outline-none transition-all placeholder:text-zinc-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px]"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
+                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:scale-110 transition-transform">
+                            <FiSearch size={20} strokeWidth={3} />
+                        </button>
                     </form>
 
                     {/* RIGHT SIDE */}
                     <div className="flex items-center gap-4">
                         {user ? (
                             <div className="flex items-center gap-4">
-                                <Link to={user.role === 2 ? "/dashboard" : "/admin/dashboard"} className="hidden md:flex items-center gap-3 cursor-pointer text-white">
-                                    <FiUser size={18} />
+                                <Link to={user.role === 2 ? "/dashboard" : "/admin/dashboard"} className="hidden md:flex items-center gap-2 font-black uppercase text-xs border-b-2 border-black pb-1 hover:text-yellow-600 transition-colors">
+                                    <FiUser size={16} strokeWidth={3} />
                                     {user.username}
                                 </Link>
                                 <button
                                     onClick={logout}
-                                    className="hidden md:block text-xs text-zinc-400 hover:text-white transition"
+                                    className="hidden md:block text-[10px] font-black uppercase bg-black text-white px-3 py-1 hover:bg-red-500 transition-colors"
                                 >
-                                    Logout
+                                    Log_Out
                                 </button>
                             </div>
                         ) : (
                             <Link
                                 to="/login"
-                                className="hidden md:block text-sm bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition"
+                                className="hidden md:block text-xs font-black uppercase bg-yellow-400 border-[3px] border-black px-6 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
                             >
-                                Login
+                                Log In
                             </Link>
                         )}
 
                         {/* MOBILE MENU BUTTON */}
-                        <button onClick={() => setOpen(!open)} className="md:hidden text-white">
-                            {open ? <FiX size={22} /> : <FiMenu size={22} />}
+                        <button onClick={() => setOpen(!open)} className="md:hidden p-2 border-[3px] border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                            {open ? <FiX size={24} strokeWidth={3} /> : <FiMenu size={24} strokeWidth={3} />}
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* MOBILE MENU */}
+            {/* MOBILE MENU - Hard Box */}
             {open && (
-                <div className="md:hidden bg-black border-t border-white/10 px-4 py-4 space-y-4">
-                    {/* ... mobile search code ... */}
+                <div className="md:hidden bg-white text-black border-t-[4px] border-black p-6 space-y-6 font-black uppercase tracking-tighter">
+                    <Link to="/explore" className="block text-xl border-b-2 border-zinc-100 pb-2">Explore</Link>
+                    <Link to="/shops" className="block text-xl border-b-2 border-zinc-100 pb-2">Shops</Link>
 
-                    {/* LINKS */}
-                    <Link to="/explore" className="block text-zinc-300">Explore</Link>
-                    <Link to="/shops" className="block text-zinc-300">Shops</Link>
-
-                    {/* --- AUTH PROTECTED MOBILE LINKS --- */}
                     {user && (
                         <>
-                            <Link to="/myshop" className="block text-zinc-300">My Shop</Link>
-                            <Link to="/favorites" className="block text-zinc-300">Favorites</Link>
+                            <Link to="/myshop" className="block text-xl border-b-2 border-zinc-100 pb-2">My Shop</Link>
+                            <Link to="/favorites" className="block text-xl border-b-2 border-zinc-100 pb-2">Favorites</Link>
                         </>
                     )}
 
-                    {/* AUTH BUTTON */}
                     {!user ? (
-                        <Link to="/login" className="block bg-white text-black text-center py-2 rounded-lg font-semibold">
-                            Login
+                        <Link to="/login" className="block bg-yellow-400 border-[3px] border-black text-center py-4 text-xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                            Log In
                         </Link>
                     ) : (
-                        <div className="space-y-2">
-                            <Link to="/dashboard" className="flex space-x-2 px-4 items-center bg-white text-black text-center py-2 rounded-lg font-semibold">
-                                <FiUser size={18} />
-                                <span>Dashboard</span>
+                        <div className="space-y-4">
+                            <Link to="/dashboard" className="flex justify-center items-center gap-3 bg-black text-white py-4 text-xl">
+                                <FiUser size={20} />
+                                Dashboard
                             </Link>
                             <button
                                 onClick={logout}
-                                className="w-full text-center py-2 text-zinc-400 text-sm"
+                                className="w-full text-center py-2 text-red-600 underline text-sm"
                             >
-                                Logout
+                                Log out
                             </button>
                         </div>
                     )}

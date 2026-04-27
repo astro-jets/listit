@@ -42,7 +42,7 @@ export const updateShop = async (
 };
 
 export const getShopReviews = async (shopId: string) => {
-  const res = await client.get(`/shops/reviews/${shopId}`, getAuthHeader());
+  const res = await client.get(`/reviews/shop/${shopId}`, getAuthHeader());
   return res.data;
 };
 

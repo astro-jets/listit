@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { FiUser, FiSearch, FiStar, FiFilter, FiMessageSquare, FiTrendingUp } from 'react-icons/fi';
 import DashboardLayout from '~/components/layouts/DashboardLayout';
-import { getShopReviews, replyToReview } from '~/services/shop.service';
+import { useAuth } from '~/context/AuthContext';
+import { getMyShop, getShopReviews, replyToReview } from '~/services/shop.service';
 
 interface Review {
     id: number;
@@ -19,19 +20,23 @@ const ReviewsPage = () => {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Assuming your auth provides the user object
+    const { user } = useAuth();
+
     useEffect(() => {
-        const loadReviews = async () => {
-            alert("Loading Reviews")
+        const loadData = async () => {
             try {
-                const data = await getShopReviews("1");
+                // 1. Get the shop details first
+                const shop = await getMyShop();
+
+
+                const data = await getShopReviews(shop.id);
                 setReviews(data);
             } catch (err) {
-                console.error("Failed to fetch reviews");
-            } finally {
-                setLoading(false);
+                console.error(err);
             }
         };
-        loadReviews();
+        loadData();
     }, []);
 
     const handleReply = async (reviewId: number) => {
@@ -55,6 +60,23 @@ const ReviewsPage = () => {
         return matchesRating && matchesSearch;
     });
 
+    const totalReviews = reviews.length;
+    const averageRating = totalReviews > 0
+        ? (reviews.reduce((acc, rev) => acc + rev.rating, 0) / totalReviews).toFixed(1)
+        : "0.0";
+
+    // Helper to render stars based on the average
+    const renderStars = (rating: string) => {
+        const num = parseFloat(rating);
+        return [...Array(5)].map((_, i) => (
+            <FiStar
+                key={i}
+                fill={i < Math.round(num) ? "currentColor" : "none"}
+                className={i < Math.round(num) ? "text-yellow-500" : "text-gray-300"}
+            />
+        ));
+    };
+
     return (
         <DashboardLayout>
             <div className="flex flex-col md:flex-row h-full min-h-[calc(100vh-80px)] bg-white p-2 overflow-hidden gap-2">
@@ -67,15 +89,24 @@ const ReviewsPage = () => {
                         {/* Global Rating Stats */}
                         <div className="mt-4 p-3 border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <div className="flex items-center justify-between">
-                                <span className="text-4xl font-black">4.8</span>
-                                <div className="flex text-yellow-500"><FiStar fill="currentColor" /><FiStar fill="currentColor" /><FiStar fill="currentColor" /><FiStar fill="currentColor" /><FiStar /></div>
+                                {/* Dynamic Average Rating */}
+                                <span className="text-4xl font-black">{averageRating}</span>
+
+                                {/* Dynamic Star Display */}
+                                <div className="flex">
+                                    {renderStars(averageRating)}
+                                </div>
                             </div>
-                            <p className="text-[10px] font-black uppercase text-gray-400 mt-1">Total 142 Reviews</p>
+
+                            {/* Dynamic Total Count */}
+                            <p className="text-[10px] font-black uppercase text-gray-400 mt-1">
+                                Total {totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="p-4 space-y-4">
-                        <div className="relative">
+                    <div className="p-4 space-y-4 max-h-screen overflow-hidden">
+                        {/* <div className="relative">
                             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2" />
                             <input
                                 type="text"
@@ -84,7 +115,7 @@ const ReviewsPage = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-white border-2 border-black p-2 pl-10 font-bold text-xs focus:outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                             />
-                        </div>
+                        </div> */}
 
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 flex items-center gap-1">

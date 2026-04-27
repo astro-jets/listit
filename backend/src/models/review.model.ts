@@ -38,26 +38,28 @@ export const ReviewService = {
     );
     return rows;
   },
-  async getByShop(shopId: string) {
+  async getByShop(shopId: string | number) {
     const query = `
     SELECT 
       r.id, 
       u.username as "userName", 
       r.rating, 
       r.comment, 
-      r.created_at as date,
-      -- If it's a listing review, show the title. If shop review, show "General Feedback"
+      -- Format date for the UI (e.g., "27 APR 2026")
+      TO_CHAR(r.created_at, 'DD MON YYYY') as date,
+      -- Show product title or fallback
       COALESCE(l.title, 'General Shop Feedback') as "productName",
-      COALESCE(CASE WHEN rr.id IS NOT NULL THEN true ELSE false END, false) as replied,
+      -- Check if a reply exists in the review_replies table
+      CASE WHEN rr.id IS NOT NULL THEN true ELSE false END as replied,
       rr.reply_text as "replyText"
     FROM reviews r
     JOIN users u ON r.user_id = u.id
     LEFT JOIN listings l ON r.listing_id = l.id
     LEFT JOIN review_replies rr ON r.id = rr.review_id
     WHERE 
-      r.shop_id = $1 -- Direct shop reviews
+      r.shop_id = $1 -- Direct feedback to the shop
       OR 
-      l.shop_id = $1 -- Reviews on listings belonging to this shop
+      l.shop_id = $1 -- Feedback on items owned by the shop
     ORDER BY r.created_at DESC
   `;
 

@@ -45,9 +45,20 @@ export const shopModel = {
       s.*, 
       u.username as owner_name, 
       u.email as owner_email, 
-      u.phone_number as owner_phone
+      u.phone_number as owner_phone,
+      COALESCE(r.avg_rating, 0) as rating,
+      COALESCE(r.review_count, 0) as total_reviews
     FROM shops s
     JOIN users u ON s.owner_id = u.id
+    LEFT JOIN (
+      SELECT 
+        shop_id, 
+        ROUND(AVG(rating), 1) as avg_rating, 
+        COUNT(*) as review_count
+      FROM reviews
+      WHERE shop_id IS NOT NULL
+      GROUP BY shop_id
+    ) r ON s.id = r.shop_id
     WHERE s.id = $1 
     LIMIT 1
   `;
