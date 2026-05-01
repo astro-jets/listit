@@ -46,14 +46,16 @@ export const shopModel = {
       u.username as owner_name, 
       u.email as owner_email, 
       u.phone_number as owner_phone,
-      COALESCE(r.avg_rating, 0) as rating,
+      -- Use numeric cast to ensure we get a high-precision float (e.g., 3.25)
+      COALESCE(r.avg_rating, 0)::float as rating,
       COALESCE(r.review_count, 0) as total_reviews
     FROM shops s
     JOIN users u ON s.owner_id = u.id
     LEFT JOIN (
       SELECT 
         shop_id, 
-        ROUND(AVG(rating), 1) as avg_rating, 
+        -- Removed ROUND and cast to numeric for floating point precision
+        AVG(rating::numeric) as avg_rating, 
         COUNT(*) as review_count
       FROM reviews
       WHERE shop_id IS NOT NULL
@@ -64,6 +66,9 @@ export const shopModel = {
   `;
 
     const { rows } = await sql(query, [shopId]);
+
+    // No need to parseFloat here if cast to ::float in SQL,
+    // but it's a safe habit for pg-node numeric results.
     return rows[0] || null;
   },
 
