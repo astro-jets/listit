@@ -5,7 +5,7 @@ import {
     FiSearch,
     FiUser,
 } from "react-icons/fi";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { useAuth } from "~/context/AuthContext";
 
 const PublicHeader = ({ showSearchOnHome = true }: { showSearchOnHome?: boolean }) => {
@@ -13,6 +13,7 @@ const PublicHeader = ({ showSearchOnHome = true }: { showSearchOnHome?: boolean 
     const { user, logout } = useAuth();
     const [query, setQuery] = useState("");
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,7 +22,7 @@ const PublicHeader = ({ showSearchOnHome = true }: { showSearchOnHome?: boolean 
     };
 
     // Check if we are on the root path
-    const isHomePage = window.location.pathname === "/";
+    const isHomePage = location.pathname === "/";
 
     // Logic to determine if search should be visible
     const shouldShowSearch = !isHomePage || showSearchOnHome;

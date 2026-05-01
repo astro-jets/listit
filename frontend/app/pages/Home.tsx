@@ -161,7 +161,7 @@ const PublicDiscovery = () => {
                     {shopsLoading ? <div className="font-black animate-pulse uppercase">Scanning Local Area...</div> : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
                             {shops.map((shop) => (
-                                <Link to={`/shop/${shop.id}`}>
+                                <Link to={`/shop/${shop.id}`} key={shop.id}>
                                     <motion.div
                                         key={shop.id}
                                         whileHover={{ x: -4, y: -4 }}

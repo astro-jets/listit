@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
-import { FiShoppingBag, FiArrowRight, FiMapPin, FiInfo, FiImage } from 'react-icons/fi';
+import { FiMapPin } from 'react-icons/fi';
 import L from 'leaflet';
 
 // --- Leaflet Assets ---
@@ -8,7 +8,6 @@ import 'leaflet/dist/leaflet.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Fix for default marker icons
 let DefaultIcon = L.icon({
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
@@ -17,7 +16,6 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// --- Helper to update map center dynamically ---
 const MapController = ({ center }: { center: [number, number] }) => {
     const map = useMap();
     useEffect(() => {
@@ -26,7 +24,6 @@ const MapController = ({ center }: { center: [number, number] }) => {
     return null;
 };
 
-// --- Types ---
 interface ShopLocationData {
     shopName: string;
     shopBio: string;
@@ -35,17 +32,23 @@ interface ShopLocationData {
     logo: File | null;
 }
 
+// Added optional initialCoords prop
 interface LocationSelectorProps {
     onComplete: (data: ShopLocationData) => void;
+    initialCoords?: { lat: number; lng: number };
 }
 
-const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
-
+const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete, initialCoords }) => {
+    // Default fallback position
     const [position, setPosition] = useState<[number, number]>([51.505, -0.09]);
 
-    // --- Get User Location on Mount ---
+    // Handle initial coordinates or geolocation logic
     useEffect(() => {
-        if ("geolocation" in navigator) {
+        if (initialCoords) {
+            // Priority 1: Use provided coordinates
+            setPosition([initialCoords.lat, initialCoords.lng]);
+        } else if ("geolocation" in navigator) {
+            // Priority 2: Use browser geolocation
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     setPosition([pos.coords.latitude, pos.coords.longitude]);
@@ -55,17 +58,18 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
                 }
             );
         }
-    }, []);
+    }, [initialCoords]); // Re-run if initialCoords change
 
+    // Communicate back to parent
     useEffect(() => {
         onComplete({
-            shopName: '', // Placeholder, parent should handle this
-            shopBio: '',  // Placeholder
+            shopName: '',
+            shopBio: '',
             lat: position[0],
             lng: position[1],
             logo: null
         });
-    }, [position, onComplete]);
+    }, [position[0], position[1], onComplete]); // Specific dependencies to prevent loop
 
     const LocationMarker = () => {
         useMapEvents({
@@ -76,17 +80,14 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onComplete }) => {
         return <Marker position={position} />;
     };
 
-
-
     return (
-        <div className="w-full  h-screen space-y-10">
-            {/* Right Column: Map */}
-            <div className="space-y-6">
+        <div className="w-full h-full space-y-4">
+            <div className="space-y-4">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2">
                     <FiMapPin className="text-yellow-500" /> Shop Location
                 </h2>
 
-                <div className="h-[60rem] w-full relative z-0 overflow-hidden ">
+                <div className="h-[400px] w-full relative z-0 overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     <MapContainer
                         center={position}
                         zoom={14}

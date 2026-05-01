@@ -90,30 +90,29 @@ const ListingCard = ({ item }: any) => {
                             {item.shop_location || "N/A"}
                         </div>
                     </div>
-
-                    {/* ACTION BUTTONS */}
-                    <div className="flex flex-col gap-2 pt-2">
-                        {/* Only show View Shop if NOT on a shop page */}
-                        {!isShopPage && (
-                            <Link
-                                to={`/shop/${item.shop_id}`}
-                                className="flex items-center justify-center gap-2 py-3 bg-white text-black border-[3px] border-black font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:bg-zinc-50 active:translate-x-1 active:translate-y-1 transition-all"
-                            >
-                                <BsShopWindow size={14} />
-                                View Shop
-                            </Link>
-                        )}
-
-                        <Link
-                            to={`/product/${item.id}`}
-                            className="flex items-center justify-center gap-2 py-3 bg-black text-white border-[3px] border-black font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(250,204,21,1)] hover:bg-yellow-400 hover:text-black hover:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
-                        >
-                            <FiShoppingBag size={14} />
-                            View Item
-                        </Link>
-                    </div>
                 </div>
             </Link>
+            {/* ACTION BUTTONS */}
+            <div className="flex flex-col gap-2 p-2 pb-4">
+                {/* Only show View Shop if NOT on a shop page */}
+                {!isShopPage && (
+                    <Link
+                        to={`/shop/${item.shop_id}`}
+                        className="flex items-center justify-center gap-2 py-3 bg-white text-black border-[3px] border-black font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:bg-zinc-50 active:translate-x-1 active:translate-y-1 transition-all"
+                    >
+                        <BsShopWindow size={14} />
+                        View Shop
+                    </Link>
+                )}
+
+                <Link
+                    to={`/product/${item.id}`}
+                    className="flex items-center justify-center gap-2 py-3 bg-black text-white border-[3px] border-black font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(250,204,21,1)] hover:bg-yellow-400 hover:text-black hover:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
+                >
+                    <FiShoppingBag size={14} />
+                    View Item
+                </Link>
+            </div>
         </div>
     );
 };

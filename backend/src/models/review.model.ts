@@ -44,12 +44,12 @@ export const ReviewService = {
       r.id, 
       u.username as "userName", 
       r.rating, 
+      -- Calculate total average as a float across all matching rows
+      -- We cast to numeric to ensure we don't lose decimal points
+      AVG(r.rating::numeric) OVER() as "averageRating",
       r.comment, 
-      -- Format date for the UI (e.g., "27 APR 2026")
       TO_CHAR(r.created_at, 'DD MON YYYY') as date,
-      -- Show product title or fallback
       COALESCE(l.title, 'General Shop Feedback') as "productName",
-      -- Check if a reply exists in the review_replies table
       CASE WHEN rr.id IS NOT NULL THEN true ELSE false END as replied,
       rr.reply_text as "replyText"
     FROM reviews r
@@ -57,14 +57,25 @@ export const ReviewService = {
     LEFT JOIN listings l ON r.listing_id = l.id
     LEFT JOIN review_replies rr ON r.id = rr.review_id
     WHERE 
-      r.shop_id = $1 -- Direct feedback to the shop
+      r.shop_id = $1 
       OR 
-      l.shop_id = $1 -- Feedback on items owned by the shop
+      l.shop_id = $1 
     ORDER BY r.created_at DESC
   `;
 
     const { rows } = await pool.query(query, [shopId]);
-    return rows;
+
+    // If there are no reviews, return an empty array or handle the null average
+    if (rows.length === 0) return { reviews: [], average: 0 };
+
+    // Since averageRating is the same on every row, we grab it from the first one
+    // We parseFloat because pg-node often returns big numbers/decimals as strings
+    const average = parseFloat(rows[0].averageRating || 0);
+
+    return {
+      reviews: rows,
+      average: average,
+    };
   },
 
   async delete(id: string, userId: string) {
