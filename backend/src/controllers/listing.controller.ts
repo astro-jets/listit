@@ -140,7 +140,7 @@ export const listingController = {
   async getOne(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string };
     const userId = (request.user as any)?.id || null; // Get from optional auth
-    console.log("User ID ==========> ", userId);
+    // console.log("User ID ==========> ", userId);
     const listing = await listingModel.getListingById(id, userId);
 
     if (!listing) {

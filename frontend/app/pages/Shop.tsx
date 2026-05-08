@@ -47,7 +47,7 @@ const ShopProfile = () => {
             ]);
             setShop(shopData);
             setProducts(productsData);
-            setReviews(reviewsData);
+            setReviews(reviewsData?.reviews || []);
         } catch (err) {
             setError("Merchant record not found in this sector.");
         } finally {

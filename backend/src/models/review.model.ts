@@ -44,10 +44,10 @@ export const ReviewService = {
       r.id, 
       u.username as "userName", 
       r.rating, 
-      -- Calculate total average as a float across all matching rows
-      -- We cast to numeric to ensure we don't lose decimal points
+      -- AVG of only direct shop reviews
       AVG(r.rating::numeric) OVER() as "averageRating",
       r.comment, 
+      r.created_at,
       TO_CHAR(r.created_at, 'DD MON YYYY') as date,
       COALESCE(l.title, 'General Shop Feedback') as "productName",
       CASE WHEN rr.id IS NOT NULL THEN true ELSE false END as replied,
@@ -57,19 +57,14 @@ export const ReviewService = {
     LEFT JOIN listings l ON r.listing_id = l.id
     LEFT JOIN review_replies rr ON r.id = rr.review_id
     WHERE 
-      r.shop_id = $1 
-      OR 
-      l.shop_id = $1 
+      r.shop_id = $1 -- ONLY direct shop reviews
     ORDER BY r.created_at DESC
   `;
 
     const { rows } = await pool.query(query, [shopId]);
 
-    // If there are no reviews, return an empty array or handle the null average
     if (rows.length === 0) return { reviews: [], average: 0 };
 
-    // Since averageRating is the same on every row, we grab it from the first one
-    // We parseFloat because pg-node often returns big numbers/decimals as strings
     const average = parseFloat(rows[0].averageRating || 0);
 
     return {

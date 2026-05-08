@@ -46,26 +46,19 @@ export const shopModel = {
       u.username as owner_name, 
       u.email as owner_email, 
       u.phone_number as owner_phone,
-      -- Ensure the final output is a float for JS (e.g., 3.5)
+      -- Rounded to 1 decimal place
       COALESCE(stats.avg_rating, 0)::float as rating,
       COALESCE(stats.review_count, 0) as total_reviews
     FROM shops s
     JOIN users u ON s.owner_id = u.id
     LEFT JOIN (
       SELECT 
-        target_shop_id as shop_id,
-        AVG(rating::numeric) as avg_rating,
+        shop_id, 
+        ROUND(AVG(rating::numeric), 1) as avg_rating, 
         COUNT(*) as review_count
-      FROM (
-        -- Combine direct shop reviews and listing reviews
-        SELECT shop_id as target_shop_id, rating FROM reviews WHERE shop_id IS NOT NULL
-        UNION ALL
-        SELECT l.shop_id as target_shop_id, r.rating 
-        FROM reviews r 
-        JOIN listings l ON r.listing_id = l.id 
-        WHERE r.listing_id IS NOT NULL
-      ) all_relevant_reviews
-      GROUP BY target_shop_id
+      FROM reviews
+      WHERE shop_id IS NOT NULL
+      GROUP BY shop_id
     ) stats ON s.id = stats.shop_id
     WHERE s.id = $1 
     LIMIT 1

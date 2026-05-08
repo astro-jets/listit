@@ -69,7 +69,6 @@ export const listingModel = {
     return result.rows;
   },
 
-  // GET: Single listing with favorite check
   async getListingById(id: string | number, userId?: string | null) {
     const result = await pool.query(
       `SELECT 
@@ -80,16 +79,14 @@ export const listingModel = {
       s.address_text as shop_location,
       s.description as shop_description,
       s.is_approved as shop_is_approved,
-      -- Get shop rating and review count
-      COALESCE(sr.avg_rating, 0) as shop_rating,
+      -- Rounded to 1 decimal place
+      COALESCE(sr.avg_rating, 0)::float as shop_rating,
       COALESCE(sr.review_count, 0) as shop_review_count,
-      -- Check if THIS specific user has favorited THIS specific listing
       EXISTS (
         SELECT 1 FROM favorites f 
         WHERE f.listing_id = l.id 
         AND f.user_id = $2::uuid
       )::boolean as is_favorited,
-      -- Aggregate images into a single JSON array without duplicates
       COALESCE(
         (SELECT json_agg(li.image_url) 
          FROM listing_images li 
@@ -99,11 +96,10 @@ export const listingModel = {
     FROM listings l
     JOIN shops s ON l.shop_id = s.id
     LEFT JOIN categories c ON l.category_id = c.id
-    -- Subquery for merchant performance
     LEFT JOIN (
       SELECT 
         shop_id, 
-        ROUND(AVG(rating), 1) as avg_rating, 
+        ROUND(AVG(rating::numeric), 1) as avg_rating, 
         COUNT(*) as review_count
       FROM reviews
       WHERE shop_id IS NOT NULL
