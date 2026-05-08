@@ -160,7 +160,7 @@ const Explore = () => {
 
             <footer className="bg-black text-white py-10 md:py-16 mt-20 border-t-[8px] border-yellow-400 text-center px-4">
                 <p className="font-black uppercase tracking-[0.1em] md:tracking-[0.2em] italic text-sm md:text-base">
-                    Studio X Marketplace — Est. 2026
+                    List.IT Marketplace — Est. 2026
                 </p>
             </footer>
         </div>

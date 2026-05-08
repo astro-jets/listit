@@ -100,7 +100,7 @@ const SignupPage = () => {
                     <div className="space-y-2">
                         <h1 className="text-3xl font-bold">Create Account</h1>
                         <p className="text-sm text-zinc-400 italic font-medium uppercase tracking-tighter">
-                            Verification required for all <span className="text-yellow-400">Studio X</span> partners
+                            Verification required for all <span className="text-yellow-400">List.IT</span> partners
                         </p>
                     </div>
 
