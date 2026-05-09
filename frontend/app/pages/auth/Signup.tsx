@@ -7,14 +7,34 @@ import * as z from 'zod';
 import { registerUser } from '~/services/auth.service';
 
 // --- Production Country Data ---
+
 const COUNTRY_DATA = [
     { code: '+265', iso: 'MW', label: 'Malawi', flag: '🇲🇼' },
     { code: '+254', iso: 'KE', label: 'Kenya', flag: '🇰🇪' },
     { code: '+255', iso: 'TZ', label: 'Tanzania', flag: '🇹🇿' },
     { code: '+260', iso: 'ZM', label: 'Zambia', flag: '🇿🇲' },
+    { code: '+263', iso: 'ZW', label: 'Zimbabwe', flag: '🇿🇼' },
+    { code: '+256', iso: 'UG', label: 'Uganda', flag: '🇺🇬' },
     { code: '+27', iso: 'ZA', label: 'South Africa', flag: '🇿🇦' },
+    { code: '+234', iso: 'NG', label: 'Nigeria', flag: '🇳🇬' },
+    { code: '+233', iso: 'GH', label: 'Ghana', flag: '🇬🇭' },
+    { code: '+251', iso: 'ET', label: 'Ethiopia', flag: '🇪🇹' },
+    { code: '+20', iso: 'EG', label: 'Egypt', flag: '🇪🇬' },
     { code: '+1', iso: 'US', label: 'USA', flag: '🇺🇸' },
+    { code: '+1', iso: 'CA', label: 'Canada', flag: '🇨🇦' },
     { code: '+44', iso: 'GB', label: 'UK', flag: '🇬🇧' },
+    { code: '+61', iso: 'AU', label: 'Australia', flag: '🇦🇺' },
+    { code: '+91', iso: 'IN', label: 'India', flag: '🇮🇳' },
+    { code: '+86', iso: 'CN', label: 'China', flag: '🇨🇳' },
+    { code: '+971', iso: 'AE', label: 'UAE', flag: '🇦🇪' },
+    { code: '+33', iso: 'FR', label: 'France', flag: '🇫🇷' },
+    { code: '+49', iso: 'DE', label: 'Germany', flag: '🇩🇪' },
+    { code: '+353', iso: 'IE', label: 'Ireland', flag: '🇮🇪' },
+    { code: '+81', iso: 'JP', label: 'Japan', flag: '🇯🇵' },
+    { code: '+244', iso: 'AO', label: 'Angola', flag: '🇦🇴' },
+    { code: '+258', iso: 'MZ', label: 'Mozambique', flag: '🇲🇿' },
+    { code: '+264', iso: 'NA', label: 'Namibia', flag: '🇳🇦' },
+    { code: '+267', iso: 'BW', label: 'Botswana', flag: '🇧🇼' },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
 // --- Validation Schema ---
