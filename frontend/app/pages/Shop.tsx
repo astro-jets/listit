@@ -32,6 +32,8 @@ const ShopProfile = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [ShowErrorModal, setShowErrorModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const reviewsPerPage = 3;
     const [errorTitle, setErrorTitle] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const { user } = useAuth();
@@ -115,6 +117,11 @@ const ShopProfile = () => {
             setIsSubmitting(false);
         }
     };
+
+    const indexOfLastReview = currentPage * reviewsPerPage;
+    const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
+    const currentReviews = reviews.slice(indexOfFirstReview, indexOfLastReview);
+    const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
     return (
         <div className="bg-[#F8F8F8] text-black min-h-screen selection:bg-yellow-400 font-sans pb-20">
@@ -280,30 +287,63 @@ const ShopProfile = () => {
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-xl font-black uppercase tracking-widest border-l-[10px] border-black pl-4">Verified Reports</h3>
-                            {reviews.length > 0 ? reviews.map((r) => (
-                                <div key={r.id} className="bg-white border-[3px] border-black p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 border-[2px] border-black overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                                                <img src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.username}&background=random`} alt="User" />
+                            <h3 className="text-xl font-black uppercase tracking-widest border-l-[10px] border-black pl-4">
+                                Verified Reports
+                            </h3>
+
+                            {currentReviews.length > 0 ? (
+                                <>
+                                    {currentReviews.map((r) => (
+                                        <div key={r.id} className="bg-white border-[3px] border-black p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                            {/* ... your existing review card content ... */}
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 border-[2px] border-black overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                                                        <img src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.username}&background=random`} alt="User" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-black text-xs uppercase underline">{r.username}</h4>
+                                                        <p className="text-[10px] font-bold text-zinc-500 uppercase">
+                                                            {r.date ? new Date(r.date).toLocaleDateString() : "DATE UNKNOWN"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex text-black text-[10px] font-black bg-yellow-400 px-2 border-[1.5px] border-black">
+                                                    {r.rating}/5
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="font-black text-xs uppercase underline">{r.username}</h4>
-                                                <p className="text-[10px] font-bold text-zinc-500 uppercase">
-                                                    {new Date(r.created_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
+                                            <p className="font-bold text-sm uppercase leading-tight text-zinc-700">
+                                                "{r.comment}"
+                                            </p>
                                         </div>
-                                        <div className="flex text-black text-[10px] font-black bg-yellow-400 px-2 border-[1.5px] border-black">
-                                            {r.rating}/5
+                                    ))}
+
+                                    {/* NEOBRUTALIST PAGINATION CONTROLS */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-between pt-4">
+                                            <button
+                                                disabled={currentPage === 1}
+                                                onClick={() => setCurrentPage(prev => prev - 1)}
+                                                className="bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-30 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+                                            >
+                                                PREV
+                                            </button>
+
+                                            <span className="font-black text-xs uppercase">
+                                                Page {currentPage} / {totalPages}
+                                            </span>
+
+                                            <button
+                                                disabled={currentPage === totalPages}
+                                                onClick={() => setCurrentPage(prev => prev + 1)}
+                                                className="bg-white border-[3px] border-black px-4 py-2 font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-30 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+                                            >
+                                                NEXT
+                                            </button>
                                         </div>
-                                    </div>
-                                    <p className="font-bold text-sm uppercase leading-tight text-zinc-700">
-                                        "{r.comment}"
-                                    </p>
-                                </div>
-                            )) : (
+                                    )}
+                                </>
+                            ) : (
                                 <div className="border-[3px] border-dashed border-black p-10 text-center font-black uppercase text-zinc-400">
                                     No data recorded in this sector.
                                 </div>
